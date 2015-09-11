@@ -67,6 +67,15 @@ func (a *Authentication) Delete() error {
 	return nil
 }
 
+func (a *Authentication) GetHandler() AuthenticationHandler {
+	handler, ok := authenticationHandlers[a.Type]
+	if !ok {
+		panic("Authentication for unknown type '" + a.Type + "' found.")
+	}
+
+	return handler
+}
+
 func (a *Authentication) UnpackContext() interface{} {
 	handler := authenticationHandlers[a.Type]
 	context := handler.GetNullContext()

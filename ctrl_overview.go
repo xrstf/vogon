@@ -99,8 +99,40 @@ func loginAction(params martini.Params, session sessions.Session, req *http.Requ
 	return redirect(302, target)
 }
 
+type infoPageStruct struct {
+	Consumer    *Consumer
+	Secrets     []Secret
+	AuthHandler AuthenticationHandler
+}
+
+func consumerInfoAction(params martini.Params, db *sqlx.Tx) response {
+	id := DecodeConsumerIdentifier(params["consumer"])
+	if id < 1 {
+		return renderError(400, "Invalid ID given.")
+	}
+
+	consumer := findConsumer(id, db)
+	if consumer == nil {
+		return renderError(404, "Consumer could not be found.")
+	}
+
+	requiredToken := consumer.InfoToken
+	if requiredToken == nil || *requiredToken != params["token"] {
+		return renderError(404, "Consumer could not be found.")
+	}
+
+	data := infoPageStruct{
+		consumer,
+		consumer.GetSecrets(false),
+		consumer.GetAuthentication(false).GetHandler(),
+	}
+
+	return renderTemplate(200, "consumer", data)
+}
+
 func setupOverviewCtrl(app *martini.ClassicMartini) {
 	app.Get("/", sessionauth.LoginRequired, overviewIndexAction)
 	app.Get("/login", loginFormAction)
 	app.Post("/login", loginAction)
+	app.Get("/info/:consumer/:token", consumerInfoAction)
 }

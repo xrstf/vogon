@@ -104,6 +104,21 @@ func (c *Consumer) GetIdentifier() string {
 	return hash
 }
 
+func DecodeConsumerIdentifier(hash string) int {
+	hd := hashids.NewData()
+	hd.Salt = "this is my salt"
+	hd.MinLength = 15
+	h := hashids.NewWithData(hd)
+
+	result := h.Decode(hash)
+
+	if len(result) == 0 {
+		return -1
+	}
+
+	return result[0]
+}
+
 func (c *Consumer) GetCreator() *User {
 	return findUser(c.CreatedBy, false, c._db)
 }

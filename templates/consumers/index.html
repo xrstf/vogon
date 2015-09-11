@@ -36,7 +36,7 @@
 						<td><i class="fa fa-link"></i> <a href="/consumers/{{.Id}}/urls">Secret URLs</a></td>
 						<td>
 							{{if .InfoToken}}
-							<i class="fa fa-info-circle"></i> <a href="/info/{{.Id}}/{{.InfoToken}}" target="_blank">Info Page</a> <sup><small><i class="fa fa-external-link"></i></small></sup>
+							<i class="fa fa-info-circle"></i> <a href="/info/{{.GetIdentifier}}/{{.InfoToken}}" target="_blank">Info Page</a> <sup><small><i class="fa fa-external-link"></i></small></sup>
 							{{else}}
 							&nbsp;
 							{{end}}

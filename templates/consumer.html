@@ -1,0 +1,110 @@
+{{define "root"}}<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<title>{{.Consumer.Name}} &ndash; Information</title>
+	<link href="/css/bootstrap.min.css" rel="stylesheet">
+	<link href="/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+	<div class="container">
+		<h1>{{.Consumer.Name}} <small><small>Usage Information</small></small></h1>
+		<p>This page explains how to access secrets as configured by the administrator.<br>It does not,
+		however, contain the actual authentication information, which needs to be provided via a
+		different channel to you.</p>
+
+		<h3>Your assigned Secrets</h3>
+		<p>The following secrets are available to you. Please note that there may be restrictions as to
+		<em>when</em> or <em>from where</em> you may access them.</p>
+
+		{{$identifier := .Consumer.GetIdentifier}}
+		<div class="table-responsive">
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>Secret</th>
+						<th>URL</th>
+					</tr>
+				</thead>
+				<tbody>
+					{{range .Secrets}}
+					<tr>
+						<td><i class="fa fa-key"></i> {{.Name}}</td>
+						<td><a href="/get/{{$identifier}}/{{.Slug}}"><tt>https://this.example.co/get/{{$identifier}}/{{.Slug}}</tt></a></td>
+					</tr>
+					{{end}}
+				</tbody>
+			</table>
+		</div>
+
+		<h3>Authentication</h3>
+		{{if eq .AuthHandler.GetIdentifier "api_key"}}
+		<p>You have to <strong>provide an API key</strong> as a GET/POST parameter named <code>raziel_key</code> or as an HTTP header
+		named <code>X-Raziel-Key</code>. Make sure that you properly handle urlencoding in case the key your administator chose has
+		non-alphanumeric characters in it.</p>
+
+		<pre><code>$ curl --data &quot;raziel_key=XXXXXXXX&quot; -X POST &quot;https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER&quot; &gt; &quot;secret.txt&quot;</code></pre>
+
+		<h3>Examples</h3>
+		<p>Below are more examples in different environments.</p>
+
+		<ul class="nav nav-tabs" style="margin-bottom:10px">
+			<li class="disabled"><a href="#" data-toggle="tab">Language:</a></li>
+			<li class="active"><a href="#api_key_curl" data-toggle="tab">cURL</a></li>
+			<li><a href="#api_key_wget" data-toggle="tab">wget</a></li>
+			<li><a href="#api_key_php" data-toggle="tab">PHP</a></li>
+		</ul>
+
+		<div class="tab-content">
+			<div class="tab-pane fade in active" id="api_key_curl">
+			<p>If there is no danger of some other user seeing your process list, you can use the example given above:</p>
+			<pre><code>$ curl --data &quot;raziel_key=XXXXXXXX&quot; -X POST &quot;https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER&quot; &gt; &quot;secret.txt&quot;</code></pre>
+			<p>Otherwise, write the password to a file and use that one:</p>
+			<pre><code>$ echo &quot;raziel_key=XXXXXXX&quot; &gt; auth.txt
+$ curl --data &quot;@auth.txt&quot; -X POST &quot;https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER&quot; &gt; &quot;secret.txt&quot;
+$ rm auth.txt</code></pre>
+		</div>
+
+		<div class="tab-pane fade" id="api_key_wget">
+			<pre><code>$ wget --form-data &quot;raziel_key=XXXXXXXX&quot; -O &quot;secret.txt&quot; &quot;https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER&quot;</code></pre>
+		</div>
+
+		<div class="tab-pane fade" id="api_key_php">
+			<p>If PHP has <code>allow_url_fopen</code> enabled, use:</p>
+			<pre><code>&lt;?php
+
+$secret = file_get_contents('https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER?raziel_key=XXXXXXXX');</code></pre>
+
+			<p>Another possibility is to use the curl extension:</p>
+			<pre><code>&lt;?php
+
+$ch = curl_init();
+
+curl_setopt($ch, CURLOPT_URL,'https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER');
+curl_setopt($ch, CURLOPT_POST, 1);
+curl_setopt($ch, CURLOPT_POSTFIELDS, 'raziel_key=XXXXXXXXX');
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+$secret = curl_exec($ch);
+
+curl_close($ch);</code></pre>
+		</div>
+		{{else}}
+		{{end}}
+	</div>
+
+	<script src="/js/jquery.min.js"></script>
+	<script src="/js/bootstrap.min.js"></script>
+	<script type="text/javascript">
+	$('#myTabs a').click(function (e) {
+		e.preventDefault()
+		$(this).tab('show')
+	});
+	</script>
+</body>
+</html>
+{{end}}
