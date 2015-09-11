@@ -1,0 +1,149 @@
+{{define "root"}}<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<meta name="csrf-token" content="{{.CsrfToken}}">
+	<title>Raziel &ndash; {{.PageTitle}}</title>
+	<link href="/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+	<link href="/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+	<link href="/css/bootstrap-toggle.min.css" rel="stylesheet" type="text/css">
+	<link href="/css/select2.min.css" rel="stylesheet" type="text/css">
+	<link href="/css/sb-admin-2.css" rel="stylesheet" type="text/css">
+	<style type="text/css">
+	.select2 .select2-selection {
+		box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+		border-color: #ccc;
+	}
+	.select2-container--default.select2-container--focus .select2-selection--multiple {
+		border: solid 1px #66afe9;
+		box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
+	}
+	.filter-form .form-group select {
+		min-width: 260px;
+		width: 100%;
+	}
+	</style>
+</head>
+<body>
+	<div id="wrapper">
+		<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="/">Raziel</a>
+			</div>
+
+			<ul class="nav navbar-top-links navbar-right">
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-user"></i> {{.CurrentUser.Name}} <b class="caret"></b></a>
+					<ul class="dropdown-menu">
+						<li>
+							<a href="#"><i class="fa fa-fw fa-user"></i> Profile</a>
+						</li>
+						<li class="divider"></li>
+						<li>
+							<a href="/logout"><i class="fa fa-fw fa-power-off"></i> Log Out</a>
+						</li>
+					</ul>
+				</li>
+			</ul>
+
+			<div class="navbar-default sidebar" role="navigation">
+				<div class="sidebar-nav navbar-collapse">
+					<ul class="nav" id="side-menu">
+						<li>
+							<a{{if eq .ActiveMenuItem "dashboard"}} class="active"{{end}} href="/"><i class="fa fa-fw fa-dashboard"></i> Dashboard</a>
+						</li>
+						<li>
+							<a{{if eq .ActiveMenuItem "secrets"}} class="active"{{end}} href="/secrets"><i class="fa fa-fw fa-key"></i> Secrets</a>
+						</li>
+						<li>
+							<a{{if eq .ActiveMenuItem "users"}} class="active"{{end}} href="/users"><i class="fa fa-fw fa-users"></i> Users</a>
+						</li>
+						<li>
+							<a{{if eq .ActiveMenuItem "consumers"}} class="active"{{end}} href="/consumers"><i class="fa fa-fw fa-truck"></i> Consumers</a>
+						</li>
+						<li>
+							<a{{if eq .ActiveMenuItem "accesslog"}} class="active"{{end}} href="/accesslog"><i class="fa fa-fw fa-list-alt"></i> Access Log</a>
+						</li>
+						<li>
+							<a{{if eq .ActiveMenuItem "auditlog"}} class="active"{{end}} href="/auditlog"><i class="fa fa-fw fa-eye"></i> Audit Log</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+
+		<div id="page-wrapper">
+			{{ template "content" . }}
+		</div>
+	</div>
+
+	<script src="/js/jquery.min.js"></script>
+	<script src="/js/bootstrap.min.js"></script>
+	<script src="/js/bootstrap-toggle.min.js"></script>
+	<script src="/js/select2.min.js"></script>
+	<script src="/js/jquery.timeago.js"></script>
+	<script src="/js/raziel.js"></script>
+</body>
+</html>
+{{end}}
+
+{{define "audit_description"}}
+{{$user := .GetCreator.Name}}
+
+<i class="fa fa-user"></i> <a href="/users/{{.CreatedBy}}">{{$user}}</a>
+{{if eq .Action "user-login"}}
+	logged in from <em>{{.OriginIp}}</em> using <em>{{.UserAgent}}</em>.
+{{else if eq .Action "user-created"}}
+	{{$subject := .GetUser.Name}}
+	created the user <i class="fa fa-user"></i> <a href="/users/{{.User}}">{{$subject}}</a>.</span>
+{{else if eq .Action "user-updated"}}
+	{{$subject := .GetUser.Name}}
+	updated the user <i class="fa fa-user"></i> <a href="/users/{{.User}}">{{$subject}}</a>.</span>
+{{else if eq .Action "user-deleted"}}
+	{{$subject := .GetUser.Name}}
+	deleted the user <i class="fa fa-user"></i> <a href="/users/{{.User}}">{{$subject}}</a>.</span>
+{{else if eq .Action "secret-created"}}
+	{{$secret := .GetSecret.Name}}
+	created the secret <i class="fa fa-key"></i> <a href="/secrets/{{.Secret}}">{{$secret}}</a>.</span>
+{{else if eq .Action "secret-updated"}}
+	{{$secret := .GetSecret.Name}}
+	updated the secret <i class="fa fa-key"></i> <a href="/secrets/{{.Secret}}">{{$secret}}</a>.</span>
+{{else if eq .Action "secret-deleted"}}
+	{{$secret := .GetSecret.Name}}
+	deleted the secret <i class="fa fa-key"></i> <a href="/secrets/{{.Secret}}">{{$secret}}</a>.</span>
+{{else if eq .Action "consumer-created"}}
+	{{$consumer := .GetConsumer.Name}}
+	created the consumer <i class="fa fa-truck"></i> <a href="/consumers/{{.Consumer}}">{{$consumer}}</a>.</span>
+{{else if eq .Action "consumer-updated"}}
+	{{$consumer := .GetConsumer.Name}}
+	updated the consumer <i class="fa fa-truck"></i> <a href="/consumers/{{.Consumer}}">{{$consumer}}</a>.</span>
+{{else if eq .Action "consumer-deleted"}}
+	{{$consumer := .GetConsumer.Name}}
+	deleted the consumer <i class="fa fa-truck"></i> <a href="/consumers/{{.Consumer}}">{{$consumer}}</a>.</span>
+{{end}}
+
+{{end}}
+
+{{define "audit_kind"}}
+{{if eq .Action "user-login"}}           <span class="label label-default"><i class="fa fa-sign-in"></i> login</span>
+{{else if eq .Action "user-created"}}    <span class="label label-success"><i class="fa fa-user"></i> user</span>
+{{else if eq .Action "user-updated"}}    <span class="label label-warning"><i class="fa fa-user"></i> user</span>
+{{else if eq .Action "user-deleted"}}    <span class="label label-danger"><i class="fa fa-user"></i> user</span>
+{{else if eq .Action "secret-created"}}  <span class="label label-success"><i class="fa fa-key"></i> secret</span>
+{{else if eq .Action "secret-updated"}}  <span class="label label-warning"><i class="fa fa-key"></i> secret</span>
+{{else if eq .Action "secret-deleted"}}  <span class="label label-danger"><i class="fa fa-key"></i> secret</span>
+{{else if eq .Action "consumer-created"}}<span class="label label-success"><i class="fa fa-truck"></i> consumer</span>
+{{else if eq .Action "consumer-updated"}}<span class="label label-warning"><i class="fa fa-truck"></i> consumer</span>
+{{else if eq .Action "consumer-deleted"}}<span class="label label-danger"><i class="fa fa-truck"></i> consumer</span>
+{{end}}
+{{end}}

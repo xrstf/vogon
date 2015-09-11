@@ -1,0 +1,13 @@
+{
+  "name": "raziel",
+  "version": "0.0.1",
+  "dependencies": {
+    "jquery": "^2.1.4",
+    "bootstrap": "^3.3.4",
+    "font-awesome": "~4.2.0",
+    "sb-admin-2": "IronSummitMedia/startbootstrap-sb-admin-2",
+    "bootstrap-toggle": "^2.2.1",
+    "select2": "^4.0.0",
+    "timeago": "1.4.2"
+  }
+}

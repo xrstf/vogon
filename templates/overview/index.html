@@ -1,0 +1,157 @@
+{{define "content"}}
+<div class="row">
+	<div class="col-lg-12">
+		<h1 class="page-header">
+			Dashboard <small>Recent Activity</small>
+		</h1>
+		<ol class="breadcrumb">
+			<li class="active">
+				<i class="fa fa-dashboard"></i> Dashboard
+			</li>
+		</ol>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-lg-3 col-md-6">
+		<div class="panel panel-primary">
+			<div class="panel-heading">
+				<div class="row">
+					<div class="col-xs-3">
+						<i class="fa fa-key fa-5x"></i>
+					</div>
+					<div class="col-xs-9 text-right">
+						<div class="huge">{{.Secrets}}</div>
+						<div>Secrets</div>
+					</div>
+				</div>
+			</div>
+			<a href="/secrets">
+				<div class="panel-footer">
+					<span class="pull-left">View All</span>
+					<span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+					<div class="clearfix"></div>
+				</div>
+			</a>
+		</div>
+	</div>
+	<div class="col-lg-3 col-md-6">
+		<div class="panel panel-green">
+			<div class="panel-heading">
+				<div class="row">
+					<div class="col-xs-3">
+						<i class="fa fa-users fa-5x"></i>
+					</div>
+					<div class="col-xs-9 text-right">
+						<div class="huge">{{.Users}}</div>
+						<div>Users</div>
+					</div>
+				</div>
+			</div>
+			<a href="/users">
+				<div class="panel-footer">
+					<span class="pull-left">View All</span>
+					<span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+					<div class="clearfix"></div>
+				</div>
+			</a>
+		</div>
+	</div>
+	<div class="col-lg-3 col-md-6">
+		<div class="panel panel-yellow">
+			<div class="panel-heading">
+				<div class="row">
+					<div class="col-xs-3">
+						<i class="fa fa-truck fa-5x"></i>
+					</div>
+					<div class="col-xs-9 text-right">
+						<div class="huge">{{.Consumers}}</div>
+						<div>Consumers</div>
+					</div>
+				</div>
+			</div>
+			<a href="/consumers">
+				<div class="panel-footer">
+					<span class="pull-left">View All</span>
+					<span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+					<div class="clearfix"></div>
+				</div>
+			</a>
+		</div>
+	</div>
+	<div class="col-lg-3 col-md-6">
+		<div class="panel panel-red">
+			<div class="panel-heading">
+				<div class="row">
+					<div class="col-xs-3">
+						<i class="fa fa-list-alt fa-5x"></i>
+					</div>
+					<div class="col-xs-9 text-right">
+						<div class="huge">{{.RecentHits}}</div>
+						<div>Accesses in the last week</div>
+					</div>
+				</div>
+			</div>
+			<a href="/accesslog">
+				<div class="panel-footer">
+					<span class="pull-left">View Full Log</span>
+					<span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+					<div class="clearfix"></div>
+				</div>
+			</a>
+		</div>
+	</div>
+</div>
+<!-- /.row -->
+
+<div class="row">
+	<div class="col-lg-6">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h3 class="panel-title"><i class="fa fa-eye fa-fw"></i> Audit Log</h3>
+			</div>
+			<div class="panel-body">
+				<div class="list-group">
+					{{range .AuditLog}}
+					<span class="list-group-item">
+						{{template "audit_kind" .}}
+						<span class="badge">{{time .CreatedAt}}</span>
+						{{template "audit_description" .}}
+					</span>
+					{{else}}
+					<p>The audit log is empty. Except for somebody manually clearing it, this should never happen.</p>
+					{{end}}
+				</div>
+				{{if .AuditLog}}
+				<a href="/auditlog" class="btn btn-default btn-block">View All <i class="fa fa-arrow-circle-right"></i></a>
+				{{end}}
+			</div>
+		</div>
+	</div>
+
+	<div class="col-lg-6">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h3 class="panel-title"><i class="fa fa-clock-o fa-fw"></i> Access Log</h3>
+			</div>
+			<div class="panel-body">
+				<div class="list-group">
+					{{range .AccessLog}}
+					<a href="#" class="list-group-item">
+						<span class="badge">just now</span>
+						<i class="fa fa-fw fa-calendar"></i> Calendar updated
+					</a>
+					{{else}}
+					<p>No hits yet.</p>
+					{{end}}
+				</div>
+				{{if .AccessLog}}
+				<div class="text-right">
+					<a href="/accesslog">View All Activity <i class="fa fa-arrow-circle-right"></i></a>
+				</div>
+				{{end}}
+			</div>
+		</div>
+	</div>
+</div>
+{{end}}

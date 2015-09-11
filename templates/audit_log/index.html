@@ -1,0 +1,114 @@
+{{define "content"}}
+<div class="row">
+	<div class="col-lg-12">
+		<h1 class="page-header">
+			Audit Log <small><small>records all changes to your data.</small></small>
+		</h1>
+		<ol class="breadcrumb">
+			<li><i class="fa fa-dashboard"></i> <a href="/">Dashboard</a></li>
+			<li class="active"><i class="fa fa-eye"></i> Audit Log</li>
+		</ol>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-lg-12">
+		<form method="get" action="/auditlog" role="form" class="form-inline filter-form">
+			<div class="well">
+				<div class="form-group">
+					<select class="form-control select2" name="secrets[]" data-placeholder="Choose secrets…" multiple>
+						{{range .Secrets}}
+						<option value="{{.Id}}"{{if .Selected}} selected{{end}}>{{.Name}}</option>
+						{{end}}
+					</select>
+				</div>
+				<div class="form-group">
+					<select class="form-control select2" name="consumers[]" data-placeholder="Choose consumers…" multiple>
+						{{range .Consumers}}
+						<option value="{{.Id}}"{{if .Selected}} selected{{end}}>{{.Name}}</option>
+						{{end}}
+					</select>
+				</div>
+				<div class="form-group">
+					<select class="form-control select2" name="users[]" data-placeholder="Choose users…" multiple>
+						{{range .Users}}
+						<option value="{{.Id}}"{{if .Selected}} selected{{end}}>{{.Name}}</option>
+						{{end}}
+					</select>
+				</div>
+				<div class="form-group">
+					<select class="form-control select2" name="creators[]" data-placeholder="Choose actors…" multiple>
+						{{range .Creators}}
+						<option value="{{.Id}}"{{if .Selected}} selected{{end}}>{{.Name}}</option>
+						{{end}}
+					</select>
+				</div>
+				<div class="form-group">
+					<select class="form-control select2" name="actions[]" data-placeholder="Choose log actions…" multiple>
+						<optgroup label="Secrets">
+							<option value="secret-created"{{if .HasAction "secret-created"}} selected{{end}}>Secret Creation</option>
+							<option value="secret-updated"{{if .HasAction "secret-updated"}} selected{{end}}>Secret Update</option>
+							<option value="secret-deleted"{{if .HasAction "secret-deleted"}} selected{{end}}>Secret Deletion</option>
+						</optgroup>
+						<optgroup label="Consumers">
+							<option value="consumer-created"{{if .HasAction "consumer-created"}} selected{{end}}>Consumer Creation</option>
+							<option value="consumer-updated"{{if .HasAction "consumer-updated"}} selected{{end}}>Consumer Update</option>
+							<option value="consumer-deleted"{{if .HasAction "consumer-deleted"}} selected{{end}}>Consumer Deletion</option>
+						</optgroup>
+						<optgroup label="Users">
+							<option value="user-login"{{if .HasAction "user-login"}} selected{{end}}>User Login</option>
+							<option value="user-created"{{if .HasAction "user-created"}} selected{{end}}>User Creation</option>
+							<option value="user-updated"{{if .HasAction "user-updated"}} selected{{end}}>User Update</option>
+							<option value="user-deleted"{{if .HasAction "user-deleted"}} selected{{end}}>User Deletion</option>
+						</optgroup>
+					</select>
+				</div>
+				<div class="form-group">
+					<button type="submit" class="btn btn-primary">Apply</button>
+				</div>
+			</div>
+		</form>
+
+		<nav style="text-align:center">
+			{{$query := .Query}}
+			<ul class="pagination">
+				{{range .Pager.Links}}
+				<li{{if not .Enabled}} class="disabled"{{else if .Active}} class="active"{{end}}>
+					<a href="{{if .Enabled}}/auditlog{{if gt .Page 0}}?page={{.Page}}&amp;{{$query}}{{else}}?{{$query}}{{end}}{{else}}#{{end}}">
+						{{if eq .Type 0}}{{.Page1Based}}{{end}}
+						{{if eq .Type 1}}|&laquo;{{end}}
+						{{if eq .Type 2}}&laquo;{{end}}
+						{{if eq .Type 3}}&raquo;{{end}}
+						{{if eq .Type 4}}&raquo;|{{end}}
+						{{if eq .Type 5}}…{{end}}
+					</a>
+				</li>
+				{{end}}
+			</ul>
+		</nav>
+
+		<div class="table-responsive">
+			<table class="table table-hover table-striped">
+				<thead>
+					<tr>
+						<th>Date</th>
+						<th>Context</th>
+						<th>Description</th>
+						<th>Origin</th>
+					</tr>
+				</thead>
+				<tbody>
+					{{range .Entries}}
+					<tr>
+						<td>{{time .CreatedAt}}</td>
+						<td>{{template "audit_kind" .}}</td>
+						<td>{{template "audit_description" .}}</td>
+						<td><abbr title="{{.UserAgent}}">{{.OriginIp}}</abbr></td>
+					</tr>
+					{{end}}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+{{end}}

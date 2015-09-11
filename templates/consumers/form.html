@@ -1,0 +1,314 @@
+{{define "content"}}
+<div class="row">
+	<div class="col-lg-12">
+		<h1 class="page-header">
+			Consumers <small><small>allow programmatic access to secrets, given certain conditions are met.</small></small>
+		</h1>
+		<ol class="breadcrumb">
+			<li><i class="fa fa-dashboard"></i> <a href="/">Dashboard</a></li>
+			<li><i class="fa fa-truck"></i> <a href="/consumers">Consumers</a></li>
+			<li class="active">{{if .Consumer}}<i class="fa fa-pencil"></i> Edit{{else}}<i class="fa fa-plus"></i> New{{end}}</li>
+		</ol>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-lg-10 col-lg-offset-1">
+		<form method="post" action="{{if .Consumer}}/consumers/{{.Consumer}}{{else}}/consumers{{end}}" role="form" id="consumer-form">
+			<div class="well">
+				<div class="form-group{{if .NameError}} has-error{{end}}">
+					<input type="hidden" name="_csrf" value="{{.CsrfToken}}">
+					{{if .Consumer}}<input type="hidden" name="_method" value="PUT">{{end}}
+					<label for="name" class="control-label">Name:</label>
+					<input class="form-control" id="name" name="name" value="{{.Name}}" required placeholder="Jenkins Build for Project X">
+					<p class="help-block">
+						{{if .NameError}}{{.NameError}}{{else}}This is how the consumer is refered to within Raziel's UI.{{end}}
+					</p>
+				</div>
+
+				<div class="form-group">
+					<label for="name" class="control-label">Status:</label>
+					<div class="checkbox">
+						<label><input type="checkbox" value="1" name="enabled"{{if .Enabled}} checked{{end}}> This consumer shall be enabled.</label>
+					</div>
+				</div>
+
+				<div class="form-group{{if .NameError}} has-error{{end}}">
+					<label for="name" class="control-label">Assigned Secrets:</label>
+					{{range .Secrets}}
+					<div class="checkbox">
+						<label><input type="checkbox" value="1" name="secret_{{.Id}}"{{if .Checked}} checked{{end}}> {{.Name}}</label>
+					</div>
+					{{end}}
+					<p class="help-block">
+						The consumer is allowed to access any of the secrets selected above.
+					</p>
+				</div>
+
+				<div class="form-group{{if .InfoTokenError}} has-error{{end}}">
+					<label for="info_token" class="control-label">Information URL Token:</label>
+					<input class="form-control" id="info_token" name="info_token" value="{{if .InfoToken}}{{.InfoToken}}{{end}}" placeholder="a random string like 320948i4wzfbw98f7gw">
+					<p class="help-block">
+						{{if .InfoTokenError}}
+						{{.InfoTokenError}}
+						{{else}}
+						This alphanumeric token controls the availablity of a public information page for
+						this consumer. When it is not set, no such page is available. The info page is
+						intended for non-Raziel users that need to know how to get the secrets they are
+						assigned to. The actual URL is available from the consumer list view.
+						{{end}}
+					</p>
+				</div>
+			</div>
+
+			<h3>Authentication</h3>
+			<p>A consumer must use exactly one authentication mechanism.</p>
+
+			<div class="row" style="margin-bottom:20px">
+				<div class="col-lg-12">
+					<div class="btn-group" data-toggle="buttons" id="auth-type-toggle">
+						<label class="btn btn-default{{if eq .AuthType "api_key"}} active{{end}}">
+							<input type="radio" name="authentication" value="api_key"{{if eq .AuthType "api_key"}} checked{{end}}> API Key
+						</label>
+						<label class="btn btn-default{{if eq .AuthType "tls_cert"}} active{{end}}">
+							<input type="radio" name="authentication" value="tls_cert"{{if eq .AuthType "tls_cert"}} checked{{end}}> TLS Client Certificate
+						</label>
+					</div>
+				</div>
+			</div>
+
+			{{if .AuthTypeError}}
+			<div class="alert alert-danger">
+				{{.AuthTypeError}}
+			</div>
+			{{end}}
+
+			<div class="well" id="authentications">
+				<div id="auth-api_key">
+					<div class="form-group{{if .AuthErrors.api_key}} has-error{{end}}">
+						<label for="auth_api_key_key" class="control-label">API Key:</label>
+						<input class="form-control" id="auth_api_key_key" name="auth_api_key_key" {{if eq .AuthType "api_key"}}{{if .AuthInfo.Hash}}placeholder="API key is already configured but not shown here. Leave this empty if you do not want to change it."{{end}}{{end}}>
+						{{if .AuthErrors.api_key}}<p class="help-block">{{.AuthErrors.api_key}}</p>{{end}}
+						<p class="help-block">This should be some long, alphanumeric string. It can be transmitted as a GET or POST parameter named <tt>raziel_key</tt> or as a HTTP header named <tt>X-Raziel-Key</tt>.</p>
+					</div>
+				</div>
+
+				<div id="auth-tls_cert">
+					<p>Client certificates require the webserver to properly validate any provided certificate and pass the issuer and serial number to Raziel.</p>
+
+					<div class="form-group">
+						<label for="auth_tls_cert_issuer" class="control-label">Certificate Issuer Common Name:</label>
+						<input class="form-control" id="auth_tls_cert_issuer" name="auth_tls_cert_issuer" value="{{if eq .AuthType "tls_cert"}}{{.AuthInfo.Issuer}}{{end}}" placeholder="Initech Inc.">
+						<p class="help-block">The common name of the certificate issuer.</p>
+					</div>
+
+					<div class="form-group">
+						<label for="auth_tls_cert_serial" class="control-label">Certificate Serial Number:</label>
+						<input class="form-control" id="auth_tls_cert_serial" name="auth_tls_cert_serial" type="number" value="{{if eq .AuthType "tls_cert"}}{{.AuthInfo.Serial}}{{end}}" min="0">
+						<p class="help-block">This is the serial number of the issued client certificate. In normal operations, all generated client certificates should get a unique, auto-incrementing serial number.</p>
+					</div>
+
+					{{if .AuthErrors.tls_cert}}<p class="text-danger">{{.AuthErrors.tls_cert}}</p>{{end}}
+				</div>
+			</div>
+
+			<h3>Additional Restrictions</h3>
+			<p>Enable as many as you like to further lock down the consumer.</p>
+
+			{{template "restriction_origin_ip" .Restrictions.origin_ip}}
+			{{template "restriction_date" .Restrictions.date}}
+			{{template "restriction_time" .Restrictions.time}}
+			{{template "restriction_file" .Restrictions.file}}
+			{{template "restriction_hit_limit" .Restrictions.hit_limit}}
+			{{template "restriction_throttle" .Restrictions.throttle}}
+
+			<div class="well">
+				{{if .Consumer}}
+				<div class="pull-right">
+					<a class="btn btn-danger" href="/consumers/{{.Consumer}}/delete"><i class="fa fa-trash-o"></i> Delete</a>
+				</div>
+				{{end}}
+
+				<div>
+					<button type="submit" class="btn btn-primary"><i class="fa fa-check"></i> {{if .Consumer}}Update{{else}}Save{{end}}</button>
+					<button type="reset" class="btn btn-default"><i class="fa fa-undo"></i> Reset</button>
+				</div>
+			</div>
+		</form>
+
+		{{if .OtherError}}
+		<div class="alert alert-danger">
+			<strong>Aw snap.</strong> {{.OtherError}}
+		</div>
+		{{end}}
+	</div>
+</div>
+{{end}}
+
+{{define "restriction_origin_ip"}}
+<div class="panel panel-{{if .Error}}danger failed{{else}}{{if .Enabled}}success{{else}}default{{end}}{{end}} restriction">
+	<div class="panel-heading">
+		<i class="fa fa-shield"></i> Require Origin IP
+		<div class="pull-right">
+			<input name="restriction_origin_ip" value="1" {{if .Enabled}}checked{{end}} type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="default">
+		</div>
+	</div>
+	<div class="panel-body">
+		<div class="row">
+			<div class="col-lg-6">
+				<p><textarea name="restriction_origin_ip_ruleset" class="form-control" rows="5">{{.Context.Ruleset}}</textarea></p>
+				{{if .Error}}<p class="text-danger">{{.Error}}</p>{{end}}
+			</div>
+			<div class="col-lg-6">
+				<p>This ensures that the request for a secret is originating from a certain range of IPs.</p>
+				<p>
+					Enter one filter per line. At least one of them must match. Each line can be either a fixed
+					IP (e.g. <tt>123.321.123.321</tt>), a netmask (e.g. <tt>127.0.0.1/16</tt>) or an expression
+					with placeholders (e.g. <tt>123.*.5*.321</tt>). IPv4 and IPv6 are supported.
+				</p>
+			</div>
+		</div>
+	</div>
+</div>
+{{end}}
+
+{{define "restriction_date"}}
+<div class="panel panel-{{if .Error}}danger failed{{else}}{{if .Enabled}}success{{else}}default{{end}}{{end}} restriction">
+	<div class="panel-heading">
+		<i class="fa fa-shield"></i> Weekly Schedule
+		<div class="pull-right">
+			<input name="restriction_date" value="1" {{if .Enabled}}checked{{end}} type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="default">
+		</div>
+	</div>
+	<div class="panel-body">
+		<div class="row">
+			<div class="col-lg-6">
+				<div class="btn-group" data-toggle="buttons">
+					{{range .Context.Week}}
+					<label class="btn btn-default{{if .Enabled}} active{{end}}">
+						<input type="checkbox" name="restriction_date_{{.Num}}" value="1"{{if .Enabled}} checked{{end}}> {{.Name}}
+					</label>
+					{{end}}
+				</div>
+				{{if .Error}}<p class="text-danger">{{.Error}}</p>{{end}}
+			</div>
+			<div class="col-lg-6">
+				<p>Define the days of the week that the consumer should be allowed to access secrets.</p>
+				<p>
+					<span class="label label-warning">Warning</span> Remember that there are timezones and
+					Raziel is using this system's timezone to determine when a day starts.
+				</p>
+			</div>
+		</div>
+	</div>
+</div>
+{{end}}
+
+{{define "restriction_time"}}
+<div class="panel panel-{{if .Error}}danger failed{{else}}{{if .Enabled}}success{{else}}default{{end}}{{end}} restriction">
+	<div class="panel-heading">
+		<i class="fa fa-shield"></i> Time Schedule
+		<div class="pull-right">
+			<input name="restriction_time" value="1" {{if .Enabled}}checked{{end}} type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="default">
+		</div>
+	</div>
+	<div class="panel-body">
+		<div class="row">
+			<div class="col-lg-6">
+				<p><textarea name="restriction_time_ruleset" class="form-control" rows="5">{{.Context.Ruleset}}</textarea></p>
+				{{if .Error}}<p class="text-danger">{{.Error}}</p>{{end}}
+			</div>
+			<div class="col-lg-6">
+				<p>Define the times of the day that the consumer should be allowed to access secrets.</p>
+				<p>
+					Enter one filter per line. At least one of them must match. Each line can be either a fixed
+					IP (e.g. <tt>123.321.123.321</tt>), a netmask (e.g. <tt>127.0.0.1/16</tt>) or an expression
+					with placeholders (e.g. <tt>123.*.5*.321</tt>). IPv4 and IPv6 are supported.
+				</p>
+			</div>
+		</div>
+	</div>
+</div>
+{{end}}
+
+{{define "restriction_file"}}
+<div class="panel panel-{{if .Error}}danger failed{{else}}{{if .Enabled}}success{{else}}default{{end}}{{end}} restriction">
+	<div class="panel-heading">
+		<i class="fa fa-shield"></i> External File
+		<div class="pull-right">
+			<input name="restriction_file" value="1" {{if .Enabled}}checked{{end}} type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="default">
+		</div>
+	</div>
+	<div class="panel-body">
+		<div class="row">
+			<div class="col-lg-6">
+				<p><input type="text" name="restriction_file_filename" class="form-control" value="{{.Context.Filename}}" placeholder="/some/place/over/the/rainbow.txt"></p>
+				{{if .Error}}<p class="text-danger">{{.Error}}</p>{{end}}
+			</div>
+			<div class="col-lg-6">
+				<p>Only allow access when this file exists and is not empty.</p>
+			</div>
+		</div>
+	</div>
+</div>
+{{end}}
+
+{{define "restriction_hit_limit"}}
+<div class="panel panel-{{if .Error}}danger failed{{else}}{{if .Enabled}}success{{else}}default{{end}}{{end}} restriction">
+	<div class="panel-heading">
+		<i class="fa fa-shield"></i> Limit Number of Requests
+		<div class="pull-right">
+			<input name="restriction_hit_limit" value="1" {{if .Enabled}}checked{{end}} type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="default">
+		</div>
+	</div>
+	<div class="panel-body">
+		<div class="row">
+			<div class="col-lg-6">
+				<div class="input-group" style="width:200px">
+					<input name="restriction_hit_limit_limit" type="number" class="form-control" min="0" value="{{.Context.Limit}}">
+					<div class="input-group-addon">requests</div>
+				</div>
+				{{if .Error}}<p class="text-danger">{{.Error}}</p>{{end}}
+			</div>
+			<div class="col-lg-6">
+				<p>Allow at most this many requests until the consumer gets disabled automatically.</p>
+				{{if gt .Context.Limit 0}}<p>This consumer has <strong>{{.Context.Remaining}} hit{{if ne .Context.Remaining 1}}s{{end}}</strong> requests left remaining.</p>{{end}}
+			</div>
+		</div>
+	</div>
+</div>
+{{end}}
+
+{{define "restriction_throttle"}}
+<div class="panel panel-{{if .Error}}danger failed{{else}}{{if .Enabled}}success{{else}}default{{end}}{{end}} restriction">
+	<div class="panel-heading">
+		<i class="fa fa-shield"></i> Throttling
+		<div class="pull-right">
+			<input name="restriction_throttle" value="1" {{if .Enabled}}checked{{end}} type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="default">
+		</div>
+	</div>
+	<div class="panel-body">
+		<div class="row">
+			<div class="col-lg-6 form-inline">
+				<div class="form-group">
+					<input name="restriction_throttle_max" type="number" class="form-control" min="0" value="{{.Context.MaxHits}}" style="width:100px">
+				</div>
+				<div class="form-group">
+					<p class="form-control-static">per</p>
+				</div>
+				<div class="btn-group" data-toggle="buttons">
+					{{range .Context.Units}}
+					<label class="btn btn-default{{if .Selected}} active{{end}}">
+						<input type="radio" name="restriction_throttle_unit" value="{{.Num}}"{{if .Selected}} checked{{end}}> {{.Name}}
+					</label>
+					{{end}}
+				</div>
+				{{if .Error}}<p class="text-danger">{{.Error}}</p>{{end}}
+			</div>
+			<div class="col-lg-6">
+				<p>Require this many seconds between two requests.</p>
+			</div>
+		</div>
+	</div>
+</div>
+{{end}}

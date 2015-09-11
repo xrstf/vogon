@@ -1,0 +1,45 @@
+{{define "content"}}
+<div class="row">
+	<div class="col-lg-12">
+		<h1 class="page-header">
+			Users <small><small>are the individuals managing secrets and consumers.</small></small>
+		</h1>
+		<ol class="breadcrumb">
+			<li><i class="fa fa-dashboard"></i> <a href="/">Dashboard</a></li>
+			<li><i class="fa fa-users"></i> <a href="/users">Users</a></li>
+			<li class="active"><i class="fa fa-trash-o"></i> Delete</li>
+		</ol>
+	</div>
+</div>
+
+<div class="row">
+	<form method="post" action="/users/{{.User}}" role="form">
+		<div class="col-lg-6 col-lg-offset-3 col-md-8 col-md-offset-2">
+			<input type="hidden" name="_csrf" value="{{.CsrfToken}}">
+			<input type="hidden" name="_method" value="DELETE">
+
+			<div class="well">
+				<p>Are you sure that you want to delete this user?</p>
+				<h4 class="text-center text-danger">{{.Name}}<br><small>(<tt>{{.LoginName}}</tt>)</small></h4>
+				<p>This will disable the account and prevent any further modifitations to it.</p>
+			</div>
+
+			<div class="row">
+				<div class="col-lg-6 col-md-6 col-sm-6 text-center">
+					<p><a class="btn btn-default btn-lg" href="/users/{{.User}}"><i class="fa fa-undo"></i> No, thanks.</a></p>
+				</div>
+
+				<div class="col-lg-6 col-md-6 col-sm-6 text-center">
+					<p><button type="submit" class="btn btn-danger btn-lg"><i class="fa fa-trash-o"></i> Yes, delete the user</button></p>
+				</div>
+			</div>
+
+			{{if .OtherError}}
+			<div class="alert alert-danger">
+				<strong>Aw snap.</strong> {{.OtherError}}
+			</div>
+			{{end}}
+		</div>
+	</form>
+</div>
+{{end}}
