@@ -1,0 +1,96 @@
+{
+	"ImportPath": "github.com/xrstf/raziel",
+	"GoVersion": "go1.5",
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/xsrftoken",
+			"Comment": "null-4",
+			"Rev": "bd5a620fff6e6167cccc9291a8d079402428a17a"
+		},
+		{
+			"ImportPath": "github.com/boj/redistore",
+			"Comment": "v1-9-g9c0e6ba",
+			"Rev": "9c0e6bab4dd444285424f189b8fb0cb03f653242"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/inject",
+			"Comment": "v1.0-rc1-10-g33e0aa1",
+			"Rev": "33e0aa1cb7c019ccc3fbe049a8262a6403d30504"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/internal",
+			"Rev": "9d4db5d1dbeff473d50e1bb82f5405c8cca0f0ac"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/redis",
+			"Rev": "9d4db5d1dbeff473d50e1bb82f5405c8cca0f0ac"
+		},
+		{
+			"ImportPath": "github.com/go-martini/martini",
+			"Comment": "v1.0-134-g184178f",
+			"Rev": "184178ffc6b2f7b86b8b99c2a411de8771708a0a"
+		},
+		{
+			"ImportPath": "github.com/go-sql-driver/mysql",
+			"Comment": "v1.2-88-ga197e5d",
+			"Rev": "a197e5d40516f2e9f74dcee085a5f2d4604e94df"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "1c83b3eabd45b6d76072b66b746c20815fb2872d"
+		},
+		{
+			"ImportPath": "github.com/gorilla/securecookie",
+			"Rev": "e95799a481bbcc3d01c2ad5178524cb8bec9f370"
+		},
+		{
+			"ImportPath": "github.com/gorilla/sessions",
+			"Rev": "b6bcae186ac3099dba8fafce125dc930393f1e5e"
+		},
+		{
+			"ImportPath": "github.com/jmoiron/sqlx",
+			"Comment": "sqlx-v1.1-44-gae682dc",
+			"Rev": "ae682dc5c71d087ef97d506ec543320fdd7b0ff1"
+		},
+		{
+			"ImportPath": "github.com/martini-contrib/csrf",
+			"Rev": "b016a25855e9ed4604a5e59b818342f2b8883f93"
+		},
+		{
+			"ImportPath": "github.com/martini-contrib/gzip",
+			"Rev": "01cd70f560c841c6e52b9ba8f09748e18e35e2c4"
+		},
+		{
+			"ImportPath": "github.com/martini-contrib/method",
+			"Rev": "905dacde5b323aeca81a41d68a7b60c0cdeef7a9"
+		},
+		{
+			"ImportPath": "github.com/martini-contrib/render",
+			"Rev": "ec18f8345a1181146728238980606fb1d6f40e8c"
+		},
+		{
+			"ImportPath": "github.com/martini-contrib/sessionauth",
+			"Rev": "3c15d8cae6c39a8feb3d3f72750084bd50bd52cc"
+		},
+		{
+			"ImportPath": "github.com/martini-contrib/sessions",
+			"Rev": "fa13114fbcf036dff8185d728651d85fcef772db"
+		},
+		{
+			"ImportPath": "github.com/oxtoacart/bpool",
+			"Rev": "4e1c5567d7c2dd59fa4c7c83d34c2f3528b025d6"
+		},
+		{
+			"ImportPath": "github.com/xrstf/pager",
+			"Rev": "609c7c4f1c4a9d1cc0c9690647c1c4e8570b2f48"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/bcrypt",
+			"Rev": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/blowfish",
+			"Rev": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec"
+		}
+	]
+}
