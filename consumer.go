@@ -138,7 +138,7 @@ func (c *Consumer) GetAuthentication(loadContext bool) *Authentication {
 	return findAuthenticationByConsumer(c.Id, loadContext, c._db)
 }
 
-func (c *Consumer) GetRequirements(loadContext bool) []Restriction {
+func (c *Consumer) GetRestrictions(loadContext bool) []Restriction {
 	return findRestrictionsByConsumer(c.Id, loadContext, c._db)
 }
 
@@ -309,7 +309,7 @@ func (data *consumerFormData) fromConsumer(c *Consumer) {
 	c._db.Select(&data.Secrets, "SELECT s.id, s.name, s.slug, IF(cs.secret_id IS NULL, 0, 1) AS checked FROM secret s LEFT JOIN consumer_secret cs ON s.id = cs.secret_id AND cs.consumer_id = ? ORDER BY s.name", c.Id)
 
 	// load restrictions (and overwrite the dummy values from primeRestrictions)
-	for _, restriction := range c.GetRequirements(true) {
+	for _, restriction := range c.GetRestrictions(true) {
 		data.Restrictions[restriction.Type] = consumerRestriction{restriction.Type, restriction.UnpackContext(), restriction.Enabled, ""}
 	}
 }
