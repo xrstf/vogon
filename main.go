@@ -136,11 +136,13 @@ func main() {
 
 	martini := &martini.ClassicMartini{m, r}
 	setupOverviewCtrl(martini)
+	setupSessionCtrl(martini)
 	setupSecretsCtrl(martini)
 	setupUsersCtrl(martini)
 	setupConsumersCtrl(martini)
 	setupAuditLogCtrl(martini)
 	setupAccessLogCtrl(martini)
+	setupDeliveryCtrl(martini)
 
 	martini.Run()
 }

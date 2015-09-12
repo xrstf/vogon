@@ -1,9 +1,11 @@
-default: fix
-	go build -v
+default: build
+
+build: fix
+	go build -v .
 
 fix: *.go
 	goimports -l -w .
 	gofmt -l -w .
 
-run: default
+run: build
 	./raziel.exe
