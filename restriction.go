@@ -1,7 +1,10 @@
 package main
 
-import "net/http"
-import "github.com/jmoiron/sqlx"
+import (
+	"net/http"
+
+	"github.com/jmoiron/sqlx"
+)
 
 // RestrictionHandler is an interface that represents a restriction implementation.
 type RestrictionHandler interface {

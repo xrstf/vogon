@@ -1,10 +1,12 @@
 package main
 
-import "time"
-import "fmt"
+import (
+	"fmt"
+	"time"
 
-// import "log"
-import "net/http"
+	// "log"
+	"net/http"
+)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // restriction handler

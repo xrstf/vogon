@@ -1,14 +1,16 @@
 package main
 
-import "encoding/json"
-import "errors"
-import "log"
-import "net"
-import "net/http"
-import "net/url"
-import "regexp"
-import "strconv"
-import "strings"
+import (
+	"encoding/json"
+	"errors"
+	"log"
+	"net"
+	"net/http"
+	"net/url"
+	"regexp"
+	"strconv"
+	"strings"
+)
 
 func matches(regex string, target string) bool {
 	matched, err := regexp.MatchString(regex, target)

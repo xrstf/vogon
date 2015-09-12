@@ -1,7 +1,9 @@
 package main
 
-import _ "github.com/go-sql-driver/mysql"
-import "github.com/jmoiron/sqlx"
+import (
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
+)
 
 type Database struct {
 	db *sqlx.DB

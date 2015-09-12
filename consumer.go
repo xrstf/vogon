@@ -1,15 +1,18 @@
 package main
 
-import "github.com/go-martini/martini"
-import "github.com/martini-contrib/csrf"
-import "github.com/martini-contrib/sessionauth"
-import "github.com/jmoiron/sqlx"
-import "github.com/speps/go-hashids"
-import "net/http"
-import "strings"
-import "strconv"
-import "fmt"
-import "log"
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+	"strings"
+
+	"github.com/go-martini/martini"
+	"github.com/jmoiron/sqlx"
+	"github.com/martini-contrib/csrf"
+	"github.com/martini-contrib/sessionauth"
+	"github.com/speps/go-hashids"
+)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Consumer model

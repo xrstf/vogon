@@ -1,15 +1,18 @@
 package main
 
-import "github.com/go-martini/martini"
-import "github.com/martini-contrib/method"
-import "github.com/martini-contrib/csrf"
-import "github.com/martini-contrib/gzip"
-import "github.com/martini-contrib/render"
-import "github.com/martini-contrib/sessions"
-import "github.com/martini-contrib/sessionauth"
-import "github.com/jmoiron/sqlx"
-import "net/http"
-import "strconv"
+import (
+	"net/http"
+	"strconv"
+
+	"github.com/go-martini/martini"
+	"github.com/jmoiron/sqlx"
+	"github.com/martini-contrib/csrf"
+	"github.com/martini-contrib/gzip"
+	"github.com/martini-contrib/method"
+	"github.com/martini-contrib/render"
+	"github.com/martini-contrib/sessionauth"
+	"github.com/martini-contrib/sessions"
+)
 
 var templateManager *TemplateManager
 var restrictionHandlers map[string]RestrictionHandler

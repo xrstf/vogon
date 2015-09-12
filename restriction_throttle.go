@@ -1,9 +1,11 @@
 package main
 
-import "net/http"
-import "strings"
-import "strconv"
-import "errors"
+import (
+	"errors"
+	"net/http"
+	"strconv"
+	"strings"
+)
 
 type ThrottleUnit int
 

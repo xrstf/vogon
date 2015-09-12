@@ -1,16 +1,19 @@
 package main
 
-import "fmt"
-import "regexp"
-import "net/http"
-import "net/url"
-import "strconv"
-import "html/template"
-import "github.com/go-martini/martini"
-import "github.com/martini-contrib/csrf"
-import "github.com/martini-contrib/sessionauth"
-import "github.com/jmoiron/sqlx"
-import "github.com/xrstf/pager"
+import (
+	"fmt"
+	"html/template"
+	"net/http"
+	"net/url"
+	"regexp"
+	"strconv"
+
+	"github.com/go-martini/martini"
+	"github.com/jmoiron/sqlx"
+	"github.com/martini-contrib/csrf"
+	"github.com/martini-contrib/sessionauth"
+	"github.com/xrstf/pager"
+)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Audit Log model

@@ -1,15 +1,18 @@
 package main
 
-import "fmt"
-import "html/template"
-import "net/http"
-import "net/url"
-import "strconv"
-import "github.com/go-martini/martini"
-import "github.com/jmoiron/sqlx"
-import "github.com/martini-contrib/csrf"
-import "github.com/martini-contrib/sessionauth"
-import "github.com/xrstf/pager"
+import (
+	"fmt"
+	"html/template"
+	"net/http"
+	"net/url"
+	"strconv"
+
+	"github.com/go-martini/martini"
+	"github.com/jmoiron/sqlx"
+	"github.com/martini-contrib/csrf"
+	"github.com/martini-contrib/sessionauth"
+	"github.com/xrstf/pager"
+)
 
 type AccessLogEntry struct {
 	Id                    int     `db:"id"`

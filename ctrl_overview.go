@@ -1,12 +1,15 @@
 package main
 
-import "github.com/go-martini/martini"
-import "github.com/martini-contrib/csrf"
-import "github.com/martini-contrib/sessionauth"
-import "github.com/martini-contrib/sessions"
-import "github.com/jmoiron/sqlx"
-import "net/http"
-import "strings"
+import (
+	"net/http"
+	"strings"
+
+	"github.com/go-martini/martini"
+	"github.com/jmoiron/sqlx"
+	"github.com/martini-contrib/csrf"
+	"github.com/martini-contrib/sessionauth"
+	"github.com/martini-contrib/sessions"
+)
 
 type accessLogEntry struct {
 	Date   string

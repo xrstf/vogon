@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/codegangsta/inject"
-	"github.com/go-martini/martini"
 	"net/http"
 	"reflect"
+
+	"github.com/codegangsta/inject"
+	"github.com/go-martini/martini"
 )
 
 func newReturnHandler() martini.ReturnHandler {

@@ -1,6 +1,8 @@
 package main
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"golang.org/x/crypto/bcrypt"
+)
 
 func Encrypt(input []byte) []byte {
 	return input

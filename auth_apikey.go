@@ -1,8 +1,10 @@
 package main
 
-import "net/http"
-import "strings"
-import "errors"
+import (
+	"errors"
+	"net/http"
+	"strings"
+)
 
 // import "crypto/subtle"
 

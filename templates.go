@@ -1,12 +1,15 @@
 package main
 
-import "errors"
-import "html/template"
-import "log"
-import "strings"
-import "time"
-import "path/filepath"
-import "github.com/oxtoacart/bpool"
+import (
+	"errors"
+	"html/template"
+	"log"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/oxtoacart/bpool"
+)
 
 type TemplateManager struct {
 	rootDir   string
