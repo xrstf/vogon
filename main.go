@@ -137,6 +137,7 @@ func main() {
 	setupUsersCtrl(martini)
 	setupConsumersCtrl(martini)
 	setupAuditLogCtrl(martini)
+	setupAccessLogCtrl(martini)
 
 	martini.Run()
 }

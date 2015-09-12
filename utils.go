@@ -1,12 +1,14 @@
 package main
 
-import "errors"
-import "regexp"
-import "strings"
 import "encoding/json"
+import "errors"
 import "log"
 import "net"
 import "net/http"
+import "net/url"
+import "regexp"
+import "strconv"
+import "strings"
 
 func matches(regex string, target string) bool {
 	matched, err := regexp.MatchString(regex, target)
@@ -112,4 +114,57 @@ func isInStringList(needle string, haystack []string) bool {
 	}
 
 	return false
+}
+
+func getStringList(req *http.Request, name string) []string {
+	list, okay := req.URL.Query()[name]
+	if okay {
+		return list
+	}
+
+	return []string{}
+}
+
+func getIntList(req *http.Request, name string) []int {
+	list := getStringList(req, name)
+	result := []int{}
+
+	for _, identifier := range list {
+		id, err := strconv.Atoi(identifier)
+		if err == nil {
+			result = append(result, id)
+		}
+	}
+
+	return result
+}
+
+func addIntsToUrl(url *url.Values, name string, values []int) {
+	for i, value := range values {
+		if i == 0 {
+			url.Set(name, strconv.Itoa(value))
+		} else {
+			url.Add(name, strconv.Itoa(value))
+		}
+	}
+}
+
+func concatIntList(values []int) string {
+	list := make([]string, 0, len(values))
+
+	for _, value := range values {
+		list = append(list, strconv.Itoa(value))
+	}
+
+	return strings.Join(list, ", ")
+}
+
+func concatStringList(values []string) string {
+	list := make([]string, 0, len(values))
+
+	for _, value := range values {
+		list = append(list, "'"+value+"'") // we assume that value is a clean string with no fancy crap
+	}
+
+	return strings.Join(list, ", ")
 }

@@ -1,7 +1,6 @@
 package main
 
 import "fmt"
-import "strings"
 import "regexp"
 import "net/http"
 import "net/url"
@@ -297,26 +296,6 @@ func (a *auditLogStruct) buildWhereStatement(secretIds []int, consumerIds []int,
 	return where
 }
 
-func concatIntList(values []int) string {
-	list := make([]string, 0, len(values))
-
-	for _, value := range values {
-		list = append(list, strconv.Itoa(value))
-	}
-
-	return strings.Join(list, ", ")
-}
-
-func concatStringList(values []string) string {
-	list := make([]string, 0, len(values))
-
-	for _, value := range values {
-		list = append(list, "'"+value+"'") // we assume that value is a clean string with no fancy crap
-	}
-
-	return strings.Join(list, ", ")
-}
-
 func (a *auditLogStruct) buildLimitStatement(limit int, offset int) string {
 	// return a sane fallback
 	if limit <= 0 {
@@ -453,37 +432,4 @@ func setupAuditLogCtrl(app *martini.ClassicMartini) {
 	app.Group("/auditlog", func(r martini.Router) {
 		app.Get("", auditLogIndexAction)
 	}, sessionauth.LoginRequired)
-}
-
-func getStringList(req *http.Request, name string) []string {
-	list, okay := req.URL.Query()[name]
-	if okay {
-		return list
-	}
-
-	return []string{}
-}
-
-func getIntList(req *http.Request, name string) []int {
-	list := getStringList(req, name)
-	result := []int{}
-
-	for _, identifier := range list {
-		id, err := strconv.Atoi(identifier)
-		if err == nil {
-			result = append(result, id)
-		}
-	}
-
-	return result
-}
-
-func addIntsToUrl(url *url.Values, name string, values []int) {
-	for i, value := range values {
-		if i == 0 {
-			url.Set(name, strconv.Itoa(value))
-		} else {
-			url.Add(name, strconv.Itoa(value))
-		}
-	}
 }
