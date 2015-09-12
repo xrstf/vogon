@@ -33,7 +33,7 @@ func findAllConsumers(db *sqlx.Tx) []Consumer {
 	list := make([]Consumer, 0)
 	db.Select(&list, "SELECT `id`, `name`, `created_at`, `updated_at`, `created_by`, `updated_by`, `enabled`, `deleted`, `info_token` FROM `consumer` c WHERE `deleted` = 0 ORDER BY `name`")
 
-	for i, _ := range list {
+	for i := range list {
 		list[i]._db = db
 	}
 
@@ -149,7 +149,7 @@ func (c *Consumer) GetSecrets(loadSecrets bool) []Secret {
 
 	c._db.Select(&secrets, "SELECT `id`, `slug`, `name`, `created_at`, `created_by`, `updated_at`, `updated_by`"+secretCol+" FROM `secret` WHERE `id` IN (SELECT `secret_id` FROM `consumer_secret` WHERE `consumer_id` = ?) ORDER BY `name`", c.Id)
 
-	for i, _ := range secrets {
+	for i := range secrets {
 		secrets[i]._db = c._db
 	}
 
@@ -402,7 +402,7 @@ func consumersIndexAction(user *User, x csrf.CSRF, db *sqlx.Tx) response {
 		"SELECT `id`, `name`, `created_at`, `updated_at`, `created_by`, `updated_by`, `enabled`, `info_token`, "+lastSeen+" FROM `consumer` c WHERE `deleted` = 0 ORDER BY `name`",
 	)
 
-	for i, _ := range data.Consumers {
+	for i := range data.Consumers {
 		data.Consumers[i]._db = db
 	}
 

@@ -31,7 +31,7 @@ func findAllSecrets(loadSecrets bool, db *sqlx.Tx) []Secret {
 
 	db.Select(&list, "SELECT `id`, `slug`, `name`, `created_at`, `created_by`, `updated_at`, `updated_by`"+secretCol+" FROM `secret` WHERE 1 ORDER BY name")
 
-	for i, _ := range list {
+	for i := range list {
 		list[i]._db = db
 	}
 

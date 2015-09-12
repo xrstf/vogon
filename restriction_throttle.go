@@ -71,9 +71,9 @@ func newThrottleContext(max int, unit ThrottleUnit) *throttleContext {
 
 func (c *throttleContext) Units() []unit {
 	return []unit{
-		unit{ThrottleSecond, "Second", c.Unit == ThrottleSecond},
-		unit{ThrottleMinute, "Minute", c.Unit == ThrottleMinute},
-		unit{ThrottleHour, "Hour", c.Unit == ThrottleHour},
-		unit{ThrottleDay, "Day", c.Unit == ThrottleDay},
+		{ThrottleSecond, "Second", c.Unit == ThrottleSecond},
+		{ThrottleMinute, "Minute", c.Unit == ThrottleMinute},
+		{ThrottleHour, "Hour", c.Unit == ThrottleHour},
+		{ThrottleDay, "Day", c.Unit == ThrottleDay},
 	}
 }

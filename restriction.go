@@ -48,7 +48,7 @@ func findRestrictionsByConsumer(consumerId int, loadContext bool, db *sqlx.Tx) [
 
 	db.Select(&list, "SELECT `consumer_id`, `type`"+contextCol+", `enabled` FROM `restriction` WHERE `consumer_id` = ?", consumerId)
 
-	for i, _ := range list {
+	for i := range list {
 		list[i]._db = db
 	}
 

@@ -98,12 +98,12 @@ func (c *dateContext) Sunday() bool {
 
 func (c *dateContext) Week() []dateDay {
 	return []dateDay{
-		dateDay{int(time.Monday), "Monday", c.Monday()},
-		dateDay{int(time.Tuesday), "Tuesday", c.Tuesday()},
-		dateDay{int(time.Wednesday), "Wednesday", c.Wednesday()},
-		dateDay{int(time.Thursday), "Thursday", c.Thursday()},
-		dateDay{int(time.Friday), "Friday", c.Friday()},
-		dateDay{int(time.Saturday), "Saturday", c.Saturday()},
-		dateDay{int(time.Sunday), "Sunday", c.Sunday()},
+		{int(time.Monday), "Monday", c.Monday()},
+		{int(time.Tuesday), "Tuesday", c.Tuesday()},
+		{int(time.Wednesday), "Wednesday", c.Wednesday()},
+		{int(time.Thursday), "Thursday", c.Thursday()},
+		{int(time.Friday), "Friday", c.Friday()},
+		{int(time.Saturday), "Saturday", c.Saturday()},
+		{int(time.Sunday), "Sunday", c.Sunday()},
 	}
 }

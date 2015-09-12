@@ -135,7 +135,7 @@ func (a *auditLogStruct) Find(secretIds []int, consumerIds []int, userIds []int,
 
 	a.db.Select(&list, "SELECT `id`, `secret_id`, `consumer_id`, `user_id`, `action`, `created_by`, `created_at`, `origin_ip`, `user_agent`, `context` FROM `audit_log` WHERE "+where+" ORDER BY id DESC "+limitStmt)
 
-	for i, _ := range list {
+	for i := range list {
 		list[i]._db = a.db
 	}
 

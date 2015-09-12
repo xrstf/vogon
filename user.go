@@ -29,7 +29,7 @@ func findAllUsers(loadPasswords bool, db *sqlx.Tx) []User {
 
 	db.Select(&list, "SELECT `id`, `login`, `name`, `last_login_at`, `deleted`"+passwordCol+" FROM `user` WHERE `deleted` IS NULL ORDER BY `name`, `login`")
 
-	for i, _ := range list {
+	for i := range list {
 		list[i]._db = db
 	}
 
@@ -211,7 +211,7 @@ func usersIndexAction(user *User, x csrf.CSRF, db *sqlx.Tx) response {
 	// find users (do not even select the user itself, we don't need it)
 	db.Select(&data.Users, "SELECT `id`, `login`, `name`, `last_login_at`, `deleted` FROM `user` WHERE `deleted` IS NULL ORDER BY `name`")
 
-	for i, _ := range data.Users {
+	for i := range data.Users {
 		data.Users[i]._db = db
 	}
 
