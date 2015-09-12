@@ -6,4 +6,4 @@ fix: *.go
 	gofmt -l -w .
 
 run: default
-	raziel.exe
+	./raziel.exe
