@@ -18,69 +18,74 @@
 		different channel to you.</p>
 
 		<h3>Your assigned Secrets</h3>
-		<p>The following secrets are available to you. Please note that there may be restrictions as to
-		<em>when</em> or <em>from where</em> you may access them.</p>
-
 		{{$identifier := .Consumer.GetIdentifier}}
-		<div class="table-responsive">
-			<table class="table table-striped">
-				<thead>
-					<tr>
-						<th>Secret</th>
-						<th>URL</th>
-					</tr>
-				</thead>
-				<tbody>
-					{{range .Secrets}}
-					<tr>
-						<td><i class="fa fa-key"></i> {{.Name}}</td>
-						<td><a href="/get/{{$identifier}}/{{.Slug}}"><tt>https://this.example.co/get/{{$identifier}}/{{.Slug}}</tt></a></td>
-					</tr>
-					{{end}}
-				</tbody>
-			</table>
-		</div>
+
+		{{if .Secrets}}
+			<p>The following secrets are available to you. Please note that there may be restrictions as to
+			<em>when</em> or <em>from where</em> you may access them.</p>
+
+			<div class="table-responsive">
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>Secret</th>
+							<th>URL</th>
+						</tr>
+					</thead>
+					<tbody>
+						{{range .Secrets}}
+						<tr>
+							<td><i class="fa fa-key"></i> {{.Name}}</td>
+							<td><a href="/get/{{$identifier}}/{{.Slug}}"><tt>https://this.example.co/get/{{$identifier}}/{{.Slug}}</tt></a></td>
+						</tr>
+						{{end}}
+					</tbody>
+				</table>
+			</div>
+		{{else}}
+			<div class="alert alert-info">
+				<i class="fa fa-exclamation-circle"></i> You have not been assigned any secrets.
+			</div>
+		{{end}}
 
 		<h3>Authentication</h3>
 		{{if eq .AuthHandler.GetIdentifier "api_key"}}
-		<p>You have to <strong>provide an API key</strong> as a GET/POST parameter named <code>raziel_key</code> or as an HTTP header
-		named <code>X-Raziel-Key</code>. Make sure that you properly handle urlencoding in case the key your administator chose has
-		non-alphanumeric characters in it.</p>
+			<p>You have to <strong>provide an API key</strong> as a GET/POST parameter named <code>raziel_key</code> or as an HTTP header
+			named <code>X-Raziel-Key</code>. Make sure that you properly handle urlencoding in case the key your administator chose has
+			non-alphanumeric characters in it.</p>
 
-		<pre><code>$ curl --data &quot;raziel_key=XXXXXXXX&quot; -X POST &quot;https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER&quot; &gt; &quot;secret.txt&quot;</code></pre>
+			<h3>Examples</h3>
+			<p>Below are more examples in different environments.</p>
 
-		<h3>Examples</h3>
-		<p>Below are more examples in different environments.</p>
+			<ul class="nav nav-tabs" style="margin-bottom:10px">
+				<li class="disabled"><a href="#" data-toggle="tab">Language:</a></li>
+				<li class="active"><a href="#api_key_curl" data-toggle="tab">cURL</a></li>
+				<li><a href="#api_key_wget" data-toggle="tab">wget</a></li>
+				<li><a href="#api_key_php" data-toggle="tab">PHP</a></li>
+			</ul>
 
-		<ul class="nav nav-tabs" style="margin-bottom:10px">
-			<li class="disabled"><a href="#" data-toggle="tab">Language:</a></li>
-			<li class="active"><a href="#api_key_curl" data-toggle="tab">cURL</a></li>
-			<li><a href="#api_key_wget" data-toggle="tab">wget</a></li>
-			<li><a href="#api_key_php" data-toggle="tab">PHP</a></li>
-		</ul>
-
-		<div class="tab-content">
-			<div class="tab-pane fade in active" id="api_key_curl">
-			<p>If there is no danger of some other user seeing your process list, you can use the example given above:</p>
-			<pre><code>$ curl --data &quot;raziel_key=XXXXXXXX&quot; -X POST &quot;https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER&quot; &gt; &quot;secret.txt&quot;</code></pre>
-			<p>Otherwise, write the password to a file and use that one:</p>
-			<pre><code>$ echo &quot;raziel_key=XXXXXXX&quot; &gt; auth.txt
-$ curl --data &quot;@auth.txt&quot; -X POST &quot;https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER&quot; &gt; &quot;secret.txt&quot;
+			<div class="tab-content">
+				<div class="tab-pane fade in active" id="api_key_curl">
+					<p>If there is no danger of some other user seeing your process list, you can use this one-liner:</p>
+					<pre><code>$ curl --data &quot;raziel_key=XXXXXXXX&quot; -X POST &quot;https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER&quot; &gt; secret.txt</code></pre>
+					<p>Otherwise, write the password to a file and use that one:</p>
+					<pre><code>$ echo &quot;raziel_key=XXXXXXX&quot; &gt; auth.txt
+$ curl --data &quot;@auth.txt&quot; -X POST &quot;https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER&quot; &gt; secret.txt
 $ rm auth.txt</code></pre>
-		</div>
+				</div>
 
-		<div class="tab-pane fade" id="api_key_wget">
-			<pre><code>$ wget --form-data &quot;raziel_key=XXXXXXXX&quot; -O &quot;secret.txt&quot; &quot;https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER&quot;</code></pre>
-		</div>
+				<div class="tab-pane fade" id="api_key_wget">
+					<pre><code>$ wget --form-data &quot;raziel_key=XXXXXXXX&quot; -O secret.txt &quot;https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER&quot;</code></pre>
+				</div>
 
-		<div class="tab-pane fade" id="api_key_php">
-			<p>If PHP has <code>allow_url_fopen</code> enabled, use:</p>
-			<pre><code>&lt;?php
+				<div class="tab-pane fade" id="api_key_php">
+					<p>If PHP has <code>allow_url_fopen</code> enabled, use:</p>
+					<pre><code>&lt;?php
 
 $secret = file_get_contents('https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER?raziel_key=XXXXXXXX');</code></pre>
 
-			<p>Another possibility is to use the curl extension:</p>
-			<pre><code>&lt;?php
+					<p>Another possibility is to use the curl extension:</p>
+					<pre><code>&lt;?php
 
 $ch = curl_init();
 
@@ -92,8 +97,44 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $secret = curl_exec($ch);
 
 curl_close($ch);</code></pre>
-		</div>
+				</div>
+			</div>
 		{{else}}
+			<p>You have to <strong>provide a SSL client certificate</strong> when making the HTTPS request. This means
+			you need both a certificate and a private key file. Some environments require them to be specified
+			separately, others require a concatenated file in the <code>.pem</code> format.</p>
+
+			<h3>Examples</h3>
+			<p>Below are more examples in different environments.</p>
+
+			<ul class="nav nav-tabs" style="margin-bottom:10px">
+				<li class="disabled"><a href="#" data-toggle="tab">Language:</a></li>
+				<li class="active"><a href="#tls_cert_curl" data-toggle="tab">cURL</a></li>
+				<li><a href="#tls_cert_wget" data-toggle="tab">wget</a></li>
+			</ul>
+
+			<div class="tab-content">
+				<div class="tab-pane fade in active" id="tls_cert_curl">
+					<p>If you have separate certificate and key files, use this:</p>
+					<pre><code>$ curl \
+    --cert /path/to/the/certificate.crt \
+    --key /path/to/the/private.key \
+    &quot;https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER&quot; &gt; secret.txt</code></pre>
+					<p>If you have a single <code>.pem</code> file, leave out the <code>--key</code>:</p>
+					<pre><code>$ curl --cert /path/to/the/certificate.pem &quot;https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER&quot; &gt; secret.txt</code></pre>
+				</div>
+
+				<div class="tab-pane fade" id="tls_cert_wget">
+					<p>If you have separate certificate and key files, use this:</p>
+					<pre><code>$ wget \
+    --certificate=/path/to/the/certificate.crt \
+    --private-key=/path/to/the/private.key \
+    -O secret.txt \
+    &quot;https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER&quot;</code></pre>
+					<p>If you have a single <code>.pem</code> file, leave out the <code>--private-key</code>:</p>
+					<pre><code>$ wget certificate=/path/to/the/certificate.pem -O secret.txt &quot;https://example.com/get/{{$identifier}}/SECRET_IDENTIFIER&quot;</code></pre>
+				</div>
+			</div>
 		{{end}}
 	</div>
 
