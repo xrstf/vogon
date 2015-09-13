@@ -12,10 +12,6 @@ func deliverSecretAction(params martini.Params, req *http.Request, db *sqlx.Tx) 
 
 	// try to resolve the consumer
 	consumerId := DecodeConsumerIdentifier(params["consumer"])
-	if consumerId < 1 {
-		return renderError(400, "Invalid ID given.")
-	}
-
 	consumer := findConsumer(consumerId, db)
 
 	// try to resolve the secret (do not load the secret's content just yet)
