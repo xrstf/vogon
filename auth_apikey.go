@@ -37,6 +37,32 @@ func (ApiKeyAuthentication) SerializeForm(req *http.Request, oldCtx interface{})
 	return newApiKeyContext(value), nil
 }
 
+type apiKeyAccessContext struct {
+	Error string `json:"error"`
+}
+
+func (ApiKeyAuthentication) CheckAccess(request *http.Request, context interface{}) (bool, interface{}) {
+	ctx, okay := context.(*apiKeyContext)
+	if !okay {
+		return false, apiKeyAccessContext{"Invalid context given. This should never happen."}
+	}
+
+	providedKey := request.FormValue("raziel_key")
+	if len(providedKey) == 0 {
+		providedKey = request.Header.Get("X-Raziel-Key")
+
+		if len(providedKey) == 0 {
+			return false, apiKeyAccessContext{"No API key provided."}
+		}
+	}
+
+	if !CompareBcrypt(ctx.Hash, providedKey) {
+		return false, apiKeyAccessContext{"The provided API is invalid."}
+	}
+
+	return true, nil
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // context representation
 

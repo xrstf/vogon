@@ -49,6 +49,15 @@ func (r HitLimitRestriction) SerializeForm(req *http.Request, enabled bool, oldC
 	return newHitLimitContext(limit, remaining), nil
 }
 
+func (HitLimitRestriction) CheckAccess(request *http.Request, context interface{}) (bool, interface{}) {
+	// ctx, err := context.(*tlsCertContext)
+	// if err {
+	// 	return false, apiKeyAccessContext{"Invalid context given. This should never happen."}
+	// }
+
+	return false, nil
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // context representation
 

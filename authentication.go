@@ -11,6 +11,7 @@ type AuthenticationHandler interface {
 	GetIdentifier() string
 	GetNullContext() interface{}
 	SerializeForm(*http.Request, interface{}) (interface{}, error)
+	CheckAccess(*http.Request, interface{}) (bool, interface{})
 }
 
 type Authentication struct {
@@ -88,4 +89,11 @@ func (a *Authentication) UnpackContext() interface{} {
 	}
 
 	return context
+}
+
+func (a *Authentication) Check(request *http.Request) (bool, interface{}) {
+	handler := a.GetHandler()
+	context := a.UnpackContext()
+
+	return handler.CheckAccess(request, context)
 }

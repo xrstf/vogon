@@ -12,6 +12,7 @@ type RestrictionHandler interface {
 	GetNullContext() interface{}
 	IsNullContext(interface{}) bool
 	SerializeForm(*http.Request, bool, interface{}) (interface{}, error)
+	CheckAccess(*http.Request, interface{}) (bool, interface{})
 }
 
 // Restriction represents a configured restriction for a consumer, stored in the database.
@@ -119,4 +120,11 @@ func (r *Restriction) IsEmpty() bool {
 	context := r.UnpackContext()
 
 	return handler.IsNullContext(context)
+}
+
+func (r *Restriction) Check(request *http.Request) (bool, interface{}) {
+	handler := r.GetHandler()
+	context := r.UnpackContext()
+
+	return handler.CheckAccess(request, context)
 }

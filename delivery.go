@@ -2,51 +2,73 @@ package main
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/go-martini/martini"
 	"github.com/jmoiron/sqlx"
-	"github.com/martini-contrib/sessionauth"
-	"github.com/martini-contrib/sessions"
 )
 
-func deliverSecretAction(params martini.Params, session sessions.Session, req *http.Request, db *sqlx.Tx) response {
-	login := strings.TrimSpace(req.FormValue("login"))
-	password := strings.TrimSpace(req.FormValue("password"))
+func deliverSecretAction(params martini.Params, req *http.Request, db *sqlx.Tx) response {
+	accessLog := NewAccessLog(db)
 
-	validated, err := validateSafeString(login, "login")
-	if err != nil {
-		return renderTemplate(403, "login", loginData{""})
+	// try to resolve the consumer
+	consumerId := DecodeConsumerIdentifier(params["consumer"])
+	if consumerId < 1 {
+		return renderError(400, "Invalid ID given.")
 	}
 
-	user := findUserByLogin(login, true, db)
-	if user == nil || user.Deleted != nil {
-		return renderTemplate(403, "login", loginData{validated})
+	consumer := findConsumer(consumerId, db)
+
+	// try to resolve the secret (do not load the secret's content just yet)
+	secret := findSecretBySlug(params["secret"], false, db)
+
+	// stop if either of the two is not found
+	if consumer == nil || secret == nil {
+		accessLog.LogNotFound(consumer, secret, req)
+
+		return newResponse(404, "Not Found.")
 	}
 
-	if *user.Password != password {
-		return renderTemplate(403, "login", loginData{validated})
+	accessGranted := consumer.Enabled && !consumer.Deleted
+
+	// check the provided authentication
+	authentication := consumer.GetAuthentication(true)
+	if authentication == nil {
+		return newResponse(500, "Something bad happened.")
 	}
 
-	NewAuditLog(db, req).LogLogin(user.Id)
+	authOkay, authContext := authentication.Check(req)
+	accessGranted = accessGranted && authOkay
 
-	err = sessionauth.UpdateUser(session, user)
-	if err != nil {
-		panic(err)
+	// check all restrictions
+	restrictionContexts := make(map[string]interface{})
+	restrictionsOkay := true
+
+	for _, restriction := range consumer.GetRestrictions(true) {
+		rType := restriction.Type
+
+		okay, rContext := restriction.Check(req)
+		restrictionsOkay = restrictionsOkay && okay
+
+		// remember the context if there was one
+		if rContext != nil {
+			restrictionContexts[rType] = rContext
+		}
 	}
 
-	err = user.TouchOnLogin()
-	if err != nil {
-		panic(err)
+	accessGranted = accessGranted && restrictionsOkay
+
+	// log the access [attempt]
+	accessLog.LogAccess(consumer, secret, req, authOkay, authContext, restrictionsOkay, restrictionContexts)
+
+	// no access => go away
+	if !accessGranted {
+		return newResponse(403, "Nope.")
 	}
 
-	target := req.URL.Query().Get(sessionauth.RedirectParam)
+	// finally load the secret with its body
+	secret = findSecret(secret.Id, true, db)
 
-	if len(target) == 0 {
-		target = "/"
-	}
-
-	return redirect(302, target)
+	return newResponse(200, "Magic, baby!")
 }
 
 func setupDeliveryCtrl(app *martini.ClassicMartini) {

@@ -59,6 +59,15 @@ func (ThrottleRestriction) SerializeForm(req *http.Request, enabled bool, oldCtx
 	return newThrottleContext(max, tunit), nil
 }
 
+func (ThrottleRestriction) CheckAccess(request *http.Request, context interface{}) (bool, interface{}) {
+	// ctx, err := context.(*tlsCertContext)
+	// if err {
+	// 	return false, apiKeyAccessContext{"Invalid context given. This should never happen."}
+	// }
+
+	return false, nil
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // context representation
 

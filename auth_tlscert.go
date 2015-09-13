@@ -35,6 +35,19 @@ func (TlsCertAuthentication) SerializeForm(req *http.Request, oldCtx interface{}
 	return newTlsCertContext("", 42), nil
 }
 
+type tlsCertAccessContext struct {
+	Error string `json:"error"`
+}
+
+func (TlsCertAuthentication) CheckAccess(request *http.Request, context interface{}) (bool, interface{}) {
+	// ctx, okay := context.(*tlsCertContext)
+	// if !okay {
+	// 	return false, apiKeyAccessContext{"Invalid context given. This should never happen."}
+	// }
+
+	return false, nil
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // context representation
 
