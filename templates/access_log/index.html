@@ -13,7 +13,7 @@
 
 <div class="row">
 	<div class="col-lg-12">
-		<form method="get" action="/auditlog" role="form" class="form-inline filter-form">
+		<form method="get" action="/accesslog" role="form" class="form-inline filter-form">
 			<div class="well">
 				<div class="form-group">
 					<select class="form-control select2" name="secrets[]" data-placeholder="Choose secrets…" multiple>
@@ -30,8 +30,17 @@
 					</select>
 				</div>
 				<div class="form-group">
-					<select class="form-control select2" name="users[]" data-placeholder="Choose authentication stati…" multiple>
-						<option value="200"{{if .HasAuthenticationStatus 200}} selected{{end}}>200 (OK)</option>
+					<select class="form-control select2" name="authentication" data-placeholder="Choose authentication status…">
+						<option value="all"{{if eq .AuthenticationSuccess "all"}} selected{{end}}>(all authentication states)</option>
+						<option value="success"{{if eq .AuthenticationSuccess "success"}} selected{{end}}>authentication success</option>
+						<option value="failure"{{if eq .AuthenticationSuccess "failure"}} selected{{end}}>authentication failure</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<select class="form-control select2" name="restriction" data-placeholder="Choose restriction status…">
+						<option value="all"{{if eq .RestrictionSuccess "all"}} selected{{end}}>(all restriction states)</option>
+						<option value="success"{{if eq .RestrictionSuccess "success"}} selected{{end}}>restriction success</option>
+						<option value="failure"{{if eq .RestrictionSuccess "failure"}} selected{{end}}>restriction failure</option>
 					</select>
 				</div>
 				<div class="form-group">
@@ -45,7 +54,7 @@
 			<ul class="pagination">
 				{{range .Pager.Links}}
 				<li{{if not .Enabled}} class="disabled"{{else if .Active}} class="active"{{end}}>
-					<a href="{{if .Enabled}}/auditlog{{if gt .Page 0}}?page={{.Page}}&amp;{{$query}}{{else}}?{{$query}}{{end}}{{else}}#{{end}}">
+					<a href="{{if .Enabled}}/accesslog{{if gt .Page 0}}?page={{.Page}}&amp;{{$query}}{{else}}?{{$query}}{{end}}{{else}}#{{end}}">
 						{{if eq .Type 0}}{{.Page1Based}}{{end}}
 						{{if eq .Type 1}}|&laquo;{{end}}
 						{{if eq .Type 2}}&laquo;{{end}}
@@ -62,17 +71,26 @@
 			<table class="table table-hover table-striped">
 				<thead>
 					<tr>
+						<th>Status</th>
 						<th>Date</th>
 						<th>Origin</th>
-						<th>Context</th>
-						<th>Description</th>
+						<th>Consumer</th>
+						<th>Secret</th>
+						<th>Details</th>
 					</tr>
 				</thead>
 				<tbody>
 					{{range .Entries}}
 					<tr>
+						<td>
+							<span class="label label-{{if .AuthenticationSuccess}}success{{else}}danger{{end}}">A</span>
+							<span class="label label-{{if .RestrictionSuccess}}success{{else}}danger{{end}}">R</span>
+						</td>
 						<td>{{time .RequestedAt}}</td>
 						<td>{{.OriginIp}}</td>
+						<td>{{if .Consumer}}<i class="fa fa-truck"></i> <a href="/consumers/{{.Consumer}}">{{.GetConsumer.Name}}</a>{{else}}(N/A){{end}}</td>
+						<td>{{if .Secret}}<i class="fa fa-key"></i> <a href="/secrets/{{.Secret}}">{{.GetSecret.Name}}</a>{{else}}(N/A){{end}}</td>
+						<td><i class="fa fa-search-plus"></i> <a href="/accesslog/{{.Id}}">Details</a></td>
 					</tr>
 					{{end}}
 				</tbody>

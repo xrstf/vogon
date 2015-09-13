@@ -166,11 +166,11 @@ func (a *accessLogStruct) buildWhereStatement(secretIds []int, consumerIds []int
 	}
 
 	if authSuccess != nil {
-		where += fmt.Sprintf(" AND `authentication_success` = %t", authSuccess)
+		where += fmt.Sprintf(" AND `authentication_success` = %t", *authSuccess)
 	}
 
 	if restrictionSuccess != nil {
-		where += fmt.Sprintf(" AND `restriction_success` = %t", restrictionSuccess)
+		where += fmt.Sprintf(" AND `restriction_success` = %t", *restrictionSuccess)
 	}
 
 	return where
@@ -211,8 +211,8 @@ type accessLogListData struct {
 	Entries               []AccessLogEntry
 	Secrets               []accessSecret
 	Consumers             []accessConsumer
-	AuthenticationSuccess *bool
-	RestrictionSuccess    *bool
+	AuthenticationSuccess string
+	RestrictionSuccess    string
 	Query                 template.URL
 	Pager                 pager.Pager
 }
@@ -223,16 +223,16 @@ func accessLogIndexAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.T
 
 	selectedSecrets := getIntList(req, "secrets[]")
 	selectedConsumers := getIntList(req, "consumers[]")
-	selectedAuth := req.FormValue("auth")
+	selectedAuth := req.FormValue("authentication")
 	selectedRestriction := req.FormValue("restriction")
 
-	if len(selectedAuth) > 0 {
-		selected := selectedAuth == "true"
+	if len(selectedAuth) > 0 && selectedAuth != "all" {
+		selected := selectedAuth == "success"
 		authSuccess = &selected
 	}
 
-	if len(selectedRestriction) > 0 {
-		selected := selectedRestriction == "true"
+	if len(selectedRestriction) > 0 && selectedRestriction != "all" {
+		selected := selectedRestriction == "success"
 		restrSuccess = &selected
 	}
 
@@ -260,8 +260,24 @@ func accessLogIndexAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.T
 	data.Pager = pgr
 	data.Secrets = []accessSecret{}
 	data.Consumers = []accessConsumer{}
-	data.AuthenticationSuccess = authSuccess
-	data.RestrictionSuccess = restrSuccess
+	data.AuthenticationSuccess = "all"
+	data.RestrictionSuccess = "all"
+
+	if authSuccess != nil {
+		if *authSuccess == true {
+			data.AuthenticationSuccess = "success"
+		} else {
+			data.AuthenticationSuccess = "failure"
+		}
+	}
+
+	if restrSuccess != nil {
+		if *restrSuccess == true {
+			data.RestrictionSuccess = "success"
+		} else {
+			data.RestrictionSuccess = "failure"
+		}
+	}
 
 	for _, secret := range findAllSecrets(false, db) {
 		selected := isInIntList(secret.Id, selectedSecrets)
@@ -279,7 +295,7 @@ func accessLogIndexAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.T
 	addIntsToUrl(&url, "consumers[]", selectedConsumers)
 
 	if authSuccess != nil {
-		url.Set("auth", fmt.Sprintf("%t", authSuccess))
+		url.Set("authentication", fmt.Sprintf("%t", authSuccess))
 	}
 
 	if restrSuccess != nil {
