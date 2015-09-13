@@ -41,7 +41,7 @@
 							&nbsp;
 							{{end}}
 						</td>
-						<td>{{if .LastSeenAt}}<i class="fa fa-list-alt"></i> <a href="/accesslog?consumer={{.Id}}">{{time .LastSeenAt}}</a>{{else}}(never){{end}}</td>
+						<td>{{if .LastSeenAt}}<i class="fa fa-list-alt"></i> <a href="/accesslog?consumers[]={{.Id}}">{{time .LastSeenAt}}</a>{{else}}(never){{end}}</td>
 						<td>{{time .CreatedAt}} by <i class="fa fa-user"></i> <a href="/users/{{.CreatedBy}}">{{.GetCreator.Name}}</a></td>
 						<td>
 							{{if .UpdatedAt}}
