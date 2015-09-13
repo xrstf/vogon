@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-martini/martini"
@@ -40,16 +41,24 @@ func deliverSecretAction(params martini.Params, req *http.Request, db *sqlx.Tx) 
 	restrictionsOkay := true
 
 	for _, restriction := range consumer.GetRestrictions(true) {
+		if !restriction.Enabled {
+			continue
+		}
+
 		rType := restriction.Type
 
 		okay, rContext := restriction.Check(req)
 		restrictionsOkay = restrictionsOkay && okay
+
+		fmt.Printf("rc = %+v\n", rContext)
 
 		// remember the context if there was one
 		if rContext != nil {
 			restrictionContexts[rType] = rContext
 		}
 	}
+
+	fmt.Printf("rc = %+v\n", restrictionContexts)
 
 	accessGranted = accessGranted && restrictionsOkay
 
@@ -64,7 +73,7 @@ func deliverSecretAction(params martini.Params, req *http.Request, db *sqlx.Tx) 
 	// finally load the secret with its body
 	secret = findSecret(secret.Id, true, db)
 
-	return newResponse(200, "Magic, baby!")
+	return newResponse(200, string(Decrypt(secret.Secret)))
 }
 
 func setupDeliveryCtrl(app *martini.ClassicMartini) {

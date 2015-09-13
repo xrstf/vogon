@@ -139,13 +139,17 @@ func (a *accessLogStruct) LogAccess(consumer *Consumer, secret *Secret, req *htt
 	}
 
 	if restrictionCtx != nil {
-		json, err := json.Marshal(restrictionCtx)
-		if err != nil {
-			panic(err)
-		}
+		asserted, ok := restrictionCtx.(map[string]interface{})
 
-		str := string(json)
-		entry.RestrictionContext = &str
+		if !ok || len(asserted) > 0 {
+			json, err := json.Marshal(restrictionCtx)
+			if err != nil {
+				panic(err)
+			}
+
+			str := string(json)
+			entry.RestrictionContext = &str
+		}
 	}
 
 	err := entry.Save()

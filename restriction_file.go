@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"io/ioutil"
 	"net/http"
 	"strings"
 )
@@ -34,13 +35,33 @@ func (FileRestriction) SerializeForm(req *http.Request, enabled bool, oldCtx int
 	return newFileContext(filename), nil
 }
 
-func (FileRestriction) CheckAccess(request *http.Request, context interface{}) (bool, interface{}) {
-	// ctx, err := context.(*tlsCertContext)
-	// if err {
-	// 	return false, apiKeyAccessContext{"Invalid context given. This should never happen."}
-	// }
+type fileRestrictionAccessContext struct {
+	Error string `json:"error"`
+}
 
-	return false, nil
+func (FileRestriction) CheckAccess(request *http.Request, context interface{}) (bool, interface{}) {
+	ctx, okay := context.(*fileContext)
+	if !okay {
+		return false, fileRestrictionAccessContext{"Invalid context given. This should never happen."}
+	}
+
+	fn := ctx.Filename
+	if len(fn) == 0 {
+		return false, fileRestrictionAccessContext{"No filename configured."}
+	}
+
+	// TODO: only read one byte, we don't need more
+	content, err := ioutil.ReadFile(fn)
+
+	if err != nil {
+		return false, fileRestrictionAccessContext{"Could not read from file '" + fn + "': " + err.Error()}
+	}
+
+	if len(content) == 0 {
+		return false, fileRestrictionAccessContext{"File '" + fn + "' is empty."}
+	}
+
+	return true, nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -34,13 +34,17 @@ func (OriginIpRestriction) SerializeForm(req *http.Request, enabled bool, oldCtx
 	return newOriginIpContext(ruleset), nil
 }
 
-func (OriginIpRestriction) CheckAccess(request *http.Request, context interface{}) (bool, interface{}) {
-	// ctx, err := context.(*tlsCertContext)
-	// if err {
-	// 	return false, apiKeyAccessContext{"Invalid context given. This should never happen."}
-	// }
+type originIpRestrictionAccessContext struct {
+	Error string `json:"error"`
+}
 
-	return false, nil
+func (OriginIpRestriction) CheckAccess(request *http.Request, context interface{}) (bool, interface{}) {
+	ctx, okay := context.(*originIpContext)
+	if !okay {
+		return false, originIpRestrictionAccessContext{"Invalid context given. This should never happen."}
+	}
+
+	return true, nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

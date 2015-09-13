@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	// "log"
 	"net/http"
 )
 
@@ -49,13 +48,24 @@ func (r DateRestriction) SerializeForm(req *http.Request, enabled bool, oldCtx i
 	return ctx, nil
 }
 
-func (DateRestriction) CheckAccess(request *http.Request, context interface{}) (bool, interface{}) {
-	// ctx, err := context.(*tlsCertContext)
-	// if err {
-	// 	return false, apiKeyAccessContext{"Invalid context given. This should never happen."}
-	// }
+type dateRestrictionAccessContext struct {
+	Error string `json:"error"`
+}
 
-	return false, nil
+func (DateRestriction) CheckAccess(request *http.Request, context interface{}) (bool, interface{}) {
+	ctx, okay := context.(*dateContext)
+	if !okay {
+		return false, dateRestrictionAccessContext{"Invalid context given. This should never happen."}
+	}
+
+	now := time.Now()
+	weekday := now.Weekday()
+
+	if !ctx.EnabledDays[weekday] {
+		return false, dateRestrictionAccessContext{"Access on " + weekday.String() + " is not allowed."}
+	}
+
+	return true, nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,12 +119,12 @@ func (c *dateContext) Sunday() bool {
 
 func (c *dateContext) Week() []dateDay {
 	return []dateDay{
-		{int(time.Monday), "Monday", c.Monday()},
-		{int(time.Tuesday), "Tuesday", c.Tuesday()},
-		{int(time.Wednesday), "Wednesday", c.Wednesday()},
-		{int(time.Thursday), "Thursday", c.Thursday()},
-		{int(time.Friday), "Friday", c.Friday()},
-		{int(time.Saturday), "Saturday", c.Saturday()},
-		{int(time.Sunday), "Sunday", c.Sunday()},
+		{int(time.Monday), time.Monday.String(), c.Monday()},
+		{int(time.Tuesday), time.Tuesday.String(), c.Tuesday()},
+		{int(time.Wednesday), time.Wednesday.String(), c.Wednesday()},
+		{int(time.Thursday), time.Thursday.String(), c.Thursday()},
+		{int(time.Friday), time.Friday.String(), c.Friday()},
+		{int(time.Saturday), time.Saturday.String(), c.Saturday()},
+		{int(time.Sunday), time.Sunday.String(), c.Sunday()},
 	}
 }
