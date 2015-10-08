@@ -22,7 +22,7 @@
 					</div>
 					<div class="col-xs-9 text-right">
 						<div class="huge">{{.Secrets}}</div>
-						<div>Secrets</div>
+						<div>Secret{{if ne .Secrets 1}}s{{end}}</div>
 					</div>
 				</div>
 			</div>
@@ -44,7 +44,7 @@
 					</div>
 					<div class="col-xs-9 text-right">
 						<div class="huge">{{.Users}}</div>
-						<div>Users</div>
+						<div>User{{if ne .Users 1}}s{{end}}</div>
 					</div>
 				</div>
 			</div>
@@ -66,7 +66,7 @@
 					</div>
 					<div class="col-xs-9 text-right">
 						<div class="huge">{{.Consumers}}</div>
-						<div>Consumers</div>
+						<div>Consumer{{if ne .Consumers 1}}s{{end}}</div>
 					</div>
 				</div>
 			</div>
@@ -88,7 +88,7 @@
 					</div>
 					<div class="col-xs-9 text-right">
 						<div class="huge">{{.RecentHits}}</div>
-						<div>Accesses in the last week</div>
+						<div>Access{{if ne .RecentHits 1}}es{{end}} in the last week</div>
 					</div>
 				</div>
 			</div>

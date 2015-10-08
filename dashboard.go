@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/go-martini/martini"
 	"github.com/jmoiron/sqlx"
@@ -35,8 +36,11 @@ func dashboardAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx) re
 	consumers := countResultSet{}
 	db.Get(&consumers, "SELECT COUNT(*) AS `num` FROM `consumer` WHERE `deleted` = 0")
 
+	now := time.Now()
+	limit := now.AddDate(0, 0, -7).Format("2006-01-02")
+
 	recentHits := countResultSet{}
-	db.Get(&recentHits, "SELECT COUNT(*) AS `num` FROM `access_log`")
+	db.Get(&recentHits, "SELECT COUNT(*) AS `num` FROM `access_log` WHERE requested_at >= '"+limit+"'")
 
 	auditLog := NewAuditLog(db, req)
 	accessLog := NewAccessLog(db)
