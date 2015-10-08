@@ -39,7 +39,7 @@ type originIpRestrictionAccessContext struct {
 }
 
 func (OriginIpRestriction) CheckAccess(request *http.Request, context interface{}) (bool, interface{}) {
-	ctx, okay := context.(*originIpContext)
+	_, okay := context.(*originIpContext)
 	if !okay {
 		return false, originIpRestrictionAccessContext{"Invalid context given. This should never happen."}
 	}

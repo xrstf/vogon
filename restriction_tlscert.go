@@ -7,19 +7,28 @@ import (
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// authentication handler
+// restriction handler
 
-type TlsCertAuthentication struct{}
+type TlsCertRestriction struct{}
 
-func (TlsCertAuthentication) GetIdentifier() string {
+func (TlsCertRestriction) GetIdentifier() string {
 	return "tls_cert"
 }
 
-func (TlsCertAuthentication) GetNullContext() interface{} {
+func (TlsCertRestriction) GetNullContext() interface{} {
 	return newTlsCertContext("", 0)
 }
 
-func (TlsCertAuthentication) SerializeForm(req *http.Request, oldCtx interface{}) (interface{}, error) {
+func (TlsCertRestriction) IsNullContext(ctx interface{}) bool {
+	asserted, ok := ctx.(*tlsCertContext)
+	if !ok {
+		return false
+	}
+
+	return asserted.Issuer == "" && asserted.Serial == 0
+}
+
+func (TlsCertRestriction) SerializeForm(req *http.Request, enabled bool, oldCtx interface{}) (interface{}, error) {
 	value := strings.TrimSpace(req.FormValue("auth_api_key_key"))
 
 	if len(value) == 0 {
@@ -37,7 +46,7 @@ type tlsCertAccessContext struct {
 	Error string `json:"error"`
 }
 
-func (TlsCertAuthentication) CheckAccess(request *http.Request, context interface{}) (bool, interface{}) {
+func (TlsCertRestriction) CheckAccess(request *http.Request, context interface{}) (bool, interface{}) {
 	// ctx, okay := context.(*tlsCertContext)
 	// if !okay {
 	// 	return false, apiKeyAccessContext{"Invalid context given. This should never happen."}

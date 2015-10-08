@@ -134,10 +134,6 @@ func (c *Consumer) GetUpdater() *User {
 	return findUser(*c.UpdatedBy, false, c._db)
 }
 
-func (c *Consumer) GetAuthentication(loadContext bool) *Authentication {
-	return findAuthenticationByConsumer(c.Id, loadContext, c._db)
-}
-
 func (c *Consumer) GetRestrictions(loadContext bool) []Restriction {
 	return findRestrictionsByConsumer(c.Id, loadContext, c._db)
 }
@@ -251,10 +247,6 @@ type consumerFormData struct {
 	InfoTokenError string
 	OtherError     string
 	Secrets        []consumerSecret
-	AuthType       string
-	AuthTypeError  string
-	AuthInfo       interface{}
-	AuthErrors     map[string]string
 	Restrictions   map[string]consumerRestriction
 }
 
@@ -262,7 +254,6 @@ func newConsumerFormData(layout layoutData) consumerFormData {
 	data := consumerFormData{layoutData: layout}
 
 	data.Secrets = make([]consumerSecret, 0)
-	data.AuthErrors = make(map[string]string)
 	data.Restrictions = make(map[string]consumerRestriction)
 
 	return data
@@ -295,15 +286,6 @@ func (data *consumerFormData) fromConsumer(c *Consumer) {
 	data.Enabled = c.Enabled
 	data.InfoToken = c.InfoToken
 	data.Secrets = make([]consumerSecret, 0)
-	data.AuthType = ""
-	data.AuthInfo = nil
-
-	// load authentication information
-	auth := c.GetAuthentication(true)
-	if auth != nil {
-		data.AuthType = auth.Type
-		data.AuthInfo = auth.UnpackContext()
-	}
 
 	// load secrets
 	c._db.Select(&data.Secrets, "SELECT s.id, s.name, s.slug, IF(cs.secret_id IS NULL, 0, 1) AS checked FROM secret s LEFT JOIN consumer_secret cs ON s.id = cs.secret_id AND cs.consumer_id = ? ORDER BY s.name", c.Id)
@@ -317,7 +299,6 @@ func (data *consumerFormData) fromConsumer(c *Consumer) {
 func (data *consumerFormData) serializeForm(req *http.Request) bool {
 	okay := true
 	name := strings.TrimSpace(req.FormValue("name"))
-	authType := req.FormValue("authentication")
 	enabled := req.FormValue("enabled") == "1"
 	infoToken := req.FormValue("info_token")
 
@@ -338,36 +319,7 @@ func (data *consumerFormData) serializeForm(req *http.Request) bool {
 		data.Secrets[idx].Checked = req.FormValue(fmt.Sprintf("secret_%d", consumerSecret.Id)) == "1"
 	}
 
-	// serialize authentication information
-	authHandler, okay := authenticationHandlers[authType]
-	if !okay {
-		data.AuthTypeError = "Invalid authentication selected."
-		okay = false
-	} else {
-		data.AuthType = authType
-
-		var err error
-		var authCtx interface{}
-
-		// if we are using the same auth type as before, we can hand the current context to the handler
-		if authType == data.AuthType {
-			authCtx, err = authHandler.SerializeForm(req, data.AuthInfo)
-		} else {
-			authCtx, err = authHandler.SerializeForm(req, nil)
-		}
-
-		if err != nil {
-			data.AuthErrors[authType] = err.Error()
-			okay = false
-		}
-
-		if authCtx == nil {
-			authCtx = authHandler.GetNullContext()
-		}
-
-		data.AuthInfo = authCtx
-	}
-
+	// serialize restriction information
 	for rtype, consumerRestriction := range data.Restrictions {
 		consumerRestriction.Enabled = req.FormValue("restriction_"+rtype) == "1"
 
@@ -419,8 +371,6 @@ func consumersAddAction(user *User, x csrf.CSRF, db *sqlx.Tx) response {
 
 	// set some sane defaults
 	data.Enabled = true
-	data.AuthType = "api_key"
-	data.AuthInfo = apiKeyContext{""}
 
 	return renderTemplate(200, "consumers/form", data)
 }
@@ -454,19 +404,6 @@ func consumersCreateAction(req *http.Request, user *User, x csrf.CSRF, db *sqlx.
 
 	// create links to the allowed secrets
 	err = newConsumer.WriteSecrets(data.Secrets)
-	if err != nil {
-		panic(err)
-	}
-
-	// create the authentication info
-	auth := &Authentication{
-		ConsumerId: newConsumer.Id,
-		Type:       data.AuthType,
-		Context:    PackContext(data.AuthInfo),
-		_db:        db,
-	}
-
-	err = auth.Save()
 	if err != nil {
 		panic(err)
 	}
@@ -539,20 +476,6 @@ func consumersUpdateAction(params martini.Params, req *http.Request, user *User,
 
 	// create links to the allowed secrets
 	err = consumer.WriteSecrets(data.Secrets)
-	if err != nil {
-		panic(err)
-	}
-
-	// update authentication
-	auth := consumer.GetAuthentication(false)
-	if auth == nil { // this should never happen
-		auth = &Authentication{ConsumerId: consumer.Id, _db: db}
-	}
-
-	auth.Type = data.AuthType
-	auth.Context = PackContext(data.AuthInfo)
-
-	err = auth.Save()
 	if err != nil {
 		panic(err)
 	}
@@ -644,9 +567,8 @@ func consumersUrlsAction(params martini.Params, user *User, req *http.Request, x
 }
 
 type infoPageStruct struct {
-	Consumer    *Consumer
-	Secrets     []Secret
-	AuthHandler AuthenticationHandler
+	Consumer *Consumer
+	Secrets  []Secret
 }
 
 func consumerInfoAction(params martini.Params, db *sqlx.Tx) response {
@@ -668,7 +590,6 @@ func consumerInfoAction(params martini.Params, db *sqlx.Tx) response {
 	data := infoPageStruct{
 		consumer,
 		consumer.GetSecrets(false),
-		consumer.GetAuthentication(false).GetHandler(),
 	}
 
 	return renderTemplate(200, "consumer", data)

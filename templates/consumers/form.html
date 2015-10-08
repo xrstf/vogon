@@ -61,60 +61,11 @@
 				</div>
 			</div>
 
-			<h3>Authentication</h3>
-			<p>A consumer must use exactly one authentication mechanism.</p>
+			<h3>Restrictions</h3>
+			<p>Enable as many as you like to lock down the consumer.</p>
 
-			<div class="row" style="margin-bottom:20px">
-				<div class="col-lg-12">
-					<div class="btn-group" data-toggle="buttons" id="auth-type-toggle">
-						<label class="btn btn-default{{if eq .AuthType "api_key"}} active{{end}}">
-							<input type="radio" name="authentication" value="api_key"{{if eq .AuthType "api_key"}} checked{{end}}> API Key
-						</label>
-						<label class="btn btn-default{{if eq .AuthType "tls_cert"}} active{{end}}">
-							<input type="radio" name="authentication" value="tls_cert"{{if eq .AuthType "tls_cert"}} checked{{end}}> TLS Client Certificate
-						</label>
-					</div>
-				</div>
-			</div>
-
-			{{if .AuthTypeError}}
-			<div class="alert alert-danger">
-				{{.AuthTypeError}}
-			</div>
-			{{end}}
-
-			<div class="well" id="authentications">
-				<div id="auth-api_key">
-					<div class="form-group{{if .AuthErrors.api_key}} has-error{{end}}">
-						<label for="auth_api_key_key" class="control-label">API Key:</label>
-						<input class="form-control" id="auth_api_key_key" name="auth_api_key_key" {{if eq .AuthType "api_key"}}{{if .AuthInfo.Hash}}placeholder="API key is already configured but not shown here. Leave this empty if you do not want to change it."{{end}}{{end}}>
-						{{if .AuthErrors.api_key}}<p class="help-block">{{.AuthErrors.api_key}}</p>{{end}}
-						<p class="help-block">This should be some long, alphanumeric string. It can be transmitted as a GET or POST parameter named <tt>raziel_key</tt> or as a HTTP header named <tt>X-Raziel-Key</tt>.</p>
-					</div>
-				</div>
-
-				<div id="auth-tls_cert">
-					<p>Client certificates require the webserver to properly validate any provided certificate and pass the issuer and serial number to Raziel.</p>
-
-					<div class="form-group">
-						<label for="auth_tls_cert_issuer" class="control-label">Certificate Issuer Common Name:</label>
-						<input class="form-control" id="auth_tls_cert_issuer" name="auth_tls_cert_issuer" value="{{if eq .AuthType "tls_cert"}}{{.AuthInfo.Issuer}}{{end}}" placeholder="Initech Inc.">
-						<p class="help-block">The common name of the certificate issuer.</p>
-					</div>
-
-					<div class="form-group">
-						<label for="auth_tls_cert_serial" class="control-label">Certificate Serial Number:</label>
-						<input class="form-control" id="auth_tls_cert_serial" name="auth_tls_cert_serial" type="number" value="{{if eq .AuthType "tls_cert"}}{{.AuthInfo.Serial}}{{end}}" min="0">
-						<p class="help-block">This is the serial number of the issued client certificate. In normal operations, all generated client certificates should get a unique, auto-incrementing serial number.</p>
-					</div>
-
-					{{if .AuthErrors.tls_cert}}<p class="text-danger">{{.AuthErrors.tls_cert}}</p>{{end}}
-				</div>
-			</div>
-
-			<h3>Additional Restrictions</h3>
-			<p>Enable as many as you like to further lock down the consumer.</p>
-
+			{{template "restriction_api_key" .Restrictions.api_key}}
+			{{template "restriction_tls_cert" .Restrictions.tls_cert}}
 			{{template "restriction_origin_ip" .Restrictions.origin_ip}}
 			{{template "restriction_date" .Restrictions.date}}
 			{{template "restriction_time" .Restrictions.time}}
@@ -141,6 +92,61 @@
 			<strong>Aw snap.</strong> {{.OtherError}}
 		</div>
 		{{end}}
+	</div>
+</div>
+{{end}}
+
+{{define "restriction_api_key"}}
+<div class="panel panel-{{if .Error}}danger failed{{else}}{{if .Enabled}}success{{else}}default{{end}}{{end}} restriction">
+	<div class="panel-heading">
+		<i class="fa fa-shield"></i> API Key
+		<div class="pull-right">
+			<input name="restriction_api_key" value="1" {{if .Enabled}}checked{{end}} type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="default">
+		</div>
+	</div>
+	<div class="panel-body">
+		<div class="row">
+			<div class="col-lg-6">
+				<p><input class="form-control" id="restriction_api_key_key" name="restriction_api_key_key" {{if .Enabled}}{{if .Context.Hash}}placeholder="API key is already configured but not shown here. Leave this empty if you do not want to change it."{{end}}{{end}}></p>
+				{{if .Error}}<p class="text-danger">{{.Error}}</p>{{end}}
+			</div>
+			<div class="col-lg-6">
+				<p>This should be some long, alphanumeric string. It can be transmitted as a GET or POST parameter named <tt>raziel_key</tt> or as a HTTP header named <tt>X-Raziel-Key</tt>.</p>
+			</div>
+		</div>
+	</div>
+</div>
+{{end}}
+
+{{define "restriction_tls_cert"}}
+<div class="panel panel-{{if .Error}}danger failed{{else}}{{if .Enabled}}success{{else}}default{{end}}{{end}} restriction">
+	<div class="panel-heading">
+		<i class="fa fa-shield"></i> TLS Client Certificate
+		<div class="pull-right">
+			<input name="restriction_tls_cert" value="1" {{if .Enabled}}checked{{end}} type="checkbox" data-toggle="toggle" data-size="mini" data-onstyle="success" data-offstyle="default">
+		</div>
+	</div>
+	<div class="panel-body">
+		<div class="row">
+			<div class="col-lg-6">
+				<div class="row">
+					<div class="col-lg-8">
+						<label for="restriction_tls_cert_issuer" class="control-label">Issuer Common Name:</label>
+						<input class="form-control" id="restriction_tls_cert_issuer" name="restriction_tls_cert_issuer" value="{{.Context.Issuer}}" placeholder="Initech Inc.">
+					</div>
+
+					<div class="col-lg-4">
+						<label for="restriction_tls_cert_serial" class="control-label">Serial Number:</label>
+						<input class="form-control" id="restriction_tls_cert_serial" name="restriction_tls_cert_serial" type="number" value="{{.Context.Serial}}" min="0">
+					</div>
+				</div>
+			</div>
+
+			<div class="col-lg-6">
+				<p>Client certificates require the webserver to properly validate any provided certificate and pass the issuer and serial number to Raziel.</p>
+				{{if .Error}}<p class="text-danger">{{.Error}}</p>{{end}}
+			</div>
+		</div>
 	</div>
 </div>
 {{end}}

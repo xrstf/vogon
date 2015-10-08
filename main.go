@@ -16,7 +16,6 @@ import (
 
 var templateManager *TemplateManager
 var restrictionHandlers map[string]RestrictionHandler
-var authenticationHandlers map[string]AuthenticationHandler
 
 func main() {
 	templateManager = NewTemplateManager("templates")
@@ -27,16 +26,14 @@ func main() {
 	}
 
 	restrictionHandlers = make(map[string]RestrictionHandler)
+	addRestrictionHandler(ApiKeyRestriction{})
+	addRestrictionHandler(TlsCertRestriction{})
 	addRestrictionHandler(OriginIpRestriction{})
 	addRestrictionHandler(DateRestriction{})
 	addRestrictionHandler(TimeRestriction{})
 	addRestrictionHandler(FileRestriction{})
 	addRestrictionHandler(HitLimitRestriction{})
 	addRestrictionHandler(ThrottleRestriction{})
-
-	authenticationHandlers = make(map[string]AuthenticationHandler)
-	addAuthenticationHandler(ApiKeyAuthentication{})
-	addAuthenticationHandler(TlsCertAuthentication{})
 
 	// setup basic Martini server
 
@@ -149,8 +146,4 @@ func main() {
 
 func addRestrictionHandler(handler RestrictionHandler) {
 	restrictionHandlers[handler.GetIdentifier()] = handler
-}
-
-func addAuthenticationHandler(handler AuthenticationHandler) {
-	authenticationHandlers[handler.GetIdentifier()] = handler
 }

@@ -27,17 +27,8 @@ func deliverSecretAction(params martini.Params, req *http.Request, db *sqlx.Tx) 
 
 	accessGranted := consumer.Enabled && !consumer.Deleted
 
-	// check the provided authentication
-	authentication := consumer.GetAuthentication(true)
-	if authentication == nil {
-		return newResponse(500, "Something bad happened.")
-	}
-
-	authOkay, authContext := authentication.Check(req)
-	accessGranted = accessGranted && authOkay
-
 	// check all restrictions
-	restrictionContexts := make(map[string]interface{})
+	contexts := make(map[string]interface{})
 	restrictionsOkay := true
 
 	for _, restriction := range consumer.GetRestrictions(true) {
@@ -54,16 +45,20 @@ func deliverSecretAction(params martini.Params, req *http.Request, db *sqlx.Tx) 
 
 		// remember the context if there was one
 		if rContext != nil {
-			restrictionContexts[rType] = rContext
+			contexts[rType] = rContext
 		}
 	}
 
-	fmt.Printf("rc = %+v\n", restrictionContexts)
-
 	accessGranted = accessGranted && restrictionsOkay
 
+	status := 200
+
+	if !accessGranted {
+		status = 403
+	}
+
 	// log the access [attempt]
-	accessLog.LogAccess(consumer, secret, req, authOkay, authContext, restrictionsOkay, restrictionContexts)
+	accessLog.LogAccess(consumer, secret, req, status, contexts)
 
 	// no access => go away
 	if !accessGranted {

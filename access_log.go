@@ -17,17 +17,15 @@ import (
 )
 
 type AccessLogEntry struct {
-	Id                    int     `db:"id"`
-	Secret                *int    `db:"secret_id"`
-	Consumer              *int    `db:"consumer_id"`
-	RequestedAt           string  `db:"requested_at"`
-	OriginIp              string  `db:"origin_ip"`
-	AuthenticationSuccess bool    `db:"authentication_success"`
-	RestrictionSuccess    bool    `db:"restriction_success"`
-	AuthenticationContext *string `db:"authentication_context"`
-	RestrictionContext    *string `db:"restriction_context"`
-	RequestBody           *string `db:"request_body"`
-	_db                   *sqlx.Tx
+	Id          int     `db:"id"`
+	Secret      *int    `db:"secret_id"`
+	Consumer    *int    `db:"consumer_id"`
+	RequestedAt string  `db:"requested_at"`
+	OriginIp    string  `db:"origin_ip"`
+	Status      int     `db:"status"`
+	Context     *string `db:"context"`
+	RequestBody *string `db:"request_body"`
+	_db         *sqlx.Tx
 }
 
 func (a *AccessLogEntry) Save() error {
@@ -36,8 +34,8 @@ func (a *AccessLogEntry) Save() error {
 	}
 
 	result, err := a._db.Exec(
-		"INSERT INTO `access_log` (`secret_id`, `consumer_id`, `requested_at`, `origin_ip`, `authentication_success`, `restriction_success`, `authentication_context`, `restriction_context`, `request_body`) VALUES (?,?,NOW(),?,?,?,?,?,?)",
-		a.Secret, a.Consumer, a.OriginIp, a.AuthenticationSuccess, a.RestrictionSuccess, a.AuthenticationContext, a.RestrictionContext, a.RequestBody,
+		"INSERT INTO `access_log` (`secret_id`, `consumer_id`, `requested_at`, `origin_ip`, `status`, `context`, `request_body`) VALUES (?,?,NOW(),?,?,?,?)",
+		a.Secret, a.Consumer, a.OriginIp, a.Status, a.Context, a.RequestBody,
 	)
 
 	if err != nil {
@@ -71,11 +69,11 @@ func (e *AccessLogEntry) GetConsumer() *Consumer {
 }
 
 type AccessLog interface {
-	Find([]int, []int, *bool, *bool, int, int) []AccessLogEntry
-	Count([]int, []int, *bool, *bool) int
+	Find([]int, []int, []int, int, int) []AccessLogEntry
+	Count([]int, []int, []int) int
 
 	LogNotFound(*Consumer, *Secret, *http.Request)
-	LogAccess(*Consumer, *Secret, *http.Request, bool, interface{}, bool, interface{})
+	LogAccess(*Consumer, *Secret, *http.Request, int, interface{})
 }
 
 type accessLogStruct struct {
@@ -86,12 +84,12 @@ func NewAccessLog(db *sqlx.Tx) AccessLog {
 	return &accessLogStruct{db}
 }
 
-func (a *accessLogStruct) Find(secretIds []int, consumerIds []int, authSuccess *bool, restrictionSuccess *bool, limit int, offset int) []AccessLogEntry {
+func (a *accessLogStruct) Find(secretIds []int, consumerIds []int, states []int, limit int, offset int) []AccessLogEntry {
 	list := make([]AccessLogEntry, 0)
-	where := a.buildWhereStatement(secretIds, consumerIds, authSuccess, restrictionSuccess)
+	where := a.buildWhereStatement(secretIds, consumerIds, states)
 	limitStmt := a.buildLimitStatement(limit, offset)
 
-	a.db.Select(&list, "SELECT `id`, `secret_id`, `consumer_id`, `requested_at`, `origin_ip`, `authentication_success`, `restriction_success`, `authentication_context`, `restriction_context`, `request_body` FROM `access_log` WHERE "+where+" ORDER BY id DESC "+limitStmt)
+	a.db.Select(&list, "SELECT `id`, `secret_id`, `consumer_id`, `requested_at`, `origin_ip`, `status`, `context`, `request_body` FROM `access_log` WHERE "+where+" ORDER BY id DESC "+limitStmt)
 
 	for i := range list {
 		list[i]._db = a.db
@@ -100,9 +98,9 @@ func (a *accessLogStruct) Find(secretIds []int, consumerIds []int, authSuccess *
 	return list
 }
 
-func (a *accessLogStruct) Count(secretIds []int, consumerIds []int, authSuccess *bool, restrictionSuccess *bool) int {
+func (a *accessLogStruct) Count(secretIds []int, consumerIds []int, states []int) int {
 	count := 0
-	where := a.buildWhereStatement(secretIds, consumerIds, authSuccess, restrictionSuccess)
+	where := a.buildWhereStatement(secretIds, consumerIds, states)
 
 	a.db.Get(&count, "SELECT COUNT(*) AS `c` FROM `access_log` WHERE "+where)
 
@@ -110,14 +108,13 @@ func (a *accessLogStruct) Count(secretIds []int, consumerIds []int, authSuccess 
 }
 
 func (a *accessLogStruct) LogNotFound(consumer *Consumer, secret *Secret, req *http.Request) {
-	a.LogAccess(consumer, secret, req, false, nil, false, nil)
+	a.LogAccess(consumer, secret, req, 404, nil)
 }
 
-func (a *accessLogStruct) LogAccess(consumer *Consumer, secret *Secret, req *http.Request, authSuccess bool, authCtx interface{}, restrictionSuccess bool, restrictionCtx interface{}) {
+func (a *accessLogStruct) LogAccess(consumer *Consumer, secret *Secret, req *http.Request, status int, ctx interface{}) {
 	entry := AccessLogEntry{}
 	entry.OriginIp = getIP(req)
-	entry.AuthenticationSuccess = authSuccess
-	entry.RestrictionSuccess = restrictionSuccess
+	entry.Status = status
 	entry._db = a.db
 
 	if consumer != nil {
@@ -128,27 +125,17 @@ func (a *accessLogStruct) LogAccess(consumer *Consumer, secret *Secret, req *htt
 		entry.Secret = &secret.Id
 	}
 
-	if authCtx != nil {
-		json, err := json.Marshal(authCtx)
-		if err != nil {
-			panic(err)
-		}
-
-		str := string(json)
-		entry.AuthenticationContext = &str
-	}
-
-	if restrictionCtx != nil {
-		asserted, ok := restrictionCtx.(map[string]interface{})
+	if ctx != nil {
+		asserted, ok := ctx.(map[string]interface{})
 
 		if !ok || len(asserted) > 0 {
-			json, err := json.Marshal(restrictionCtx)
+			json, err := json.Marshal(ctx)
 			if err != nil {
 				panic(err)
 			}
 
 			str := string(json)
-			entry.RestrictionContext = &str
+			entry.Context = &str
 		}
 	}
 
@@ -158,7 +145,7 @@ func (a *accessLogStruct) LogAccess(consumer *Consumer, secret *Secret, req *htt
 	}
 }
 
-func (a *accessLogStruct) buildWhereStatement(secretIds []int, consumerIds []int, authSuccess *bool, restrictionSuccess *bool) string {
+func (a *accessLogStruct) buildWhereStatement(secretIds []int, consumerIds []int, states []int) string {
 	where := "1"
 
 	if len(secretIds) > 0 {
@@ -169,12 +156,8 @@ func (a *accessLogStruct) buildWhereStatement(secretIds []int, consumerIds []int
 		where += fmt.Sprintf(" AND `consumer_id` IN (%s)", concatIntList(consumerIds))
 	}
 
-	if authSuccess != nil {
-		where += fmt.Sprintf(" AND `authentication_success` = %t", *authSuccess)
-	}
-
-	if restrictionSuccess != nil {
-		where += fmt.Sprintf(" AND `restriction_success` = %t", *restrictionSuccess)
+	if len(states) > 0 {
+		where += fmt.Sprintf(" AND `status` IN (%s)", concatIntList(states))
 	}
 
 	return where
@@ -212,33 +195,18 @@ type accessConsumer struct {
 type accessLogListData struct {
 	layoutData
 
-	Entries               []AccessLogEntry
-	Secrets               []accessSecret
-	Consumers             []accessConsumer
-	AuthenticationSuccess string
-	RestrictionSuccess    string
-	Query                 template.URL
-	Pager                 pager.Pager
+	Entries   []AccessLogEntry
+	Secrets   []accessSecret
+	Consumers []accessConsumer
+	States    map[int]bool
+	Query     template.URL
+	Pager     pager.Pager
 }
 
 func accessLogIndexAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx) response {
-	var authSuccess *bool = nil
-	var restrSuccess *bool = nil
-
 	selectedSecrets := getIntList(req, "secrets[]")
 	selectedConsumers := getIntList(req, "consumers[]")
-	selectedAuth := req.FormValue("authentication")
-	selectedRestriction := req.FormValue("restriction")
-
-	if len(selectedAuth) > 0 && selectedAuth != "all" {
-		selected := selectedAuth == "success"
-		authSuccess = &selected
-	}
-
-	if len(selectedRestriction) > 0 && selectedRestriction != "all" {
-		selected := selectedRestriction == "success"
-		restrSuccess = &selected
-	}
+	selectedStates := getIntList(req, "status[]")
 
 	// get current page
 	page, err := strconv.Atoi(req.FormValue("page"))
@@ -254,8 +222,8 @@ func accessLogIndexAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.T
 	offset := page * limit
 
 	accessLog := NewAccessLog(db)
-	entries := accessLog.Find(selectedSecrets, selectedConsumers, authSuccess, restrSuccess, limit, offset)
-	total := accessLog.Count(selectedSecrets, selectedConsumers, authSuccess, restrSuccess)
+	entries := accessLog.Find(selectedSecrets, selectedConsumers, selectedStates, limit, offset)
+	total := accessLog.Count(selectedSecrets, selectedConsumers, selectedStates)
 
 	pgr := pager.NewBasicPager(page, total, limit)
 	data := &accessLogListData{layoutData: NewLayoutData("Access Log", "accesslog", user, x.GetToken())}
@@ -264,24 +232,7 @@ func accessLogIndexAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.T
 	data.Pager = pgr
 	data.Secrets = []accessSecret{}
 	data.Consumers = []accessConsumer{}
-	data.AuthenticationSuccess = "all"
-	data.RestrictionSuccess = "all"
-
-	if authSuccess != nil {
-		if *authSuccess == true {
-			data.AuthenticationSuccess = "success"
-		} else {
-			data.AuthenticationSuccess = "failure"
-		}
-	}
-
-	if restrSuccess != nil {
-		if *restrSuccess == true {
-			data.RestrictionSuccess = "success"
-		} else {
-			data.RestrictionSuccess = "failure"
-		}
-	}
+	data.States = make(map[int]bool)
 
 	for _, secret := range findAllSecrets(false, db) {
 		selected := isInIntList(secret.Id, selectedSecrets)
@@ -293,18 +244,15 @@ func accessLogIndexAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.T
 		data.Consumers = append(data.Consumers, accessConsumer{consumer.Id, consumer.Name, selected})
 	}
 
+	for _, status := range selectedStates {
+		data.States[status] = true
+	}
+
 	// re-create the query string
 	url := url.Values{}
 	addIntsToUrl(&url, "secrets[]", selectedSecrets)
 	addIntsToUrl(&url, "consumers[]", selectedConsumers)
-
-	if authSuccess != nil {
-		url.Set("authentication", fmt.Sprintf("%t", authSuccess))
-	}
-
-	if restrSuccess != nil {
-		url.Set("restriction", fmt.Sprintf("%t", restrSuccess))
-	}
+	addIntsToUrl(&url, "status[]", selectedStates)
 
 	data.Query = template.URL(url.Encode())
 

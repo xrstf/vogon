@@ -7,22 +7,29 @@ import (
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// authentication handler
+// restriction handler
 
-type ApiKeyAuthentication struct{}
+type ApiKeyRestriction struct{}
 
-func (ApiKeyAuthentication) GetIdentifier() string {
+func (ApiKeyRestriction) GetIdentifier() string {
 	return "api_key"
 }
 
-func (ApiKeyAuthentication) GetNullContext() interface{} {
-	auth := apiKeyContext{""} // prevent bcrypting the empty string (if we instead called newApiKeyContext)
-
-	return &auth
+func (ApiKeyRestriction) GetNullContext() interface{} {
+	return &apiKeyContext{""} // prevent bcrypting the empty string (if we instead called newApiKeyContext)
 }
 
-func (ApiKeyAuthentication) SerializeForm(req *http.Request, oldCtx interface{}) (interface{}, error) {
-	value := strings.TrimSpace(req.FormValue("auth_api_key_key"))
+func (ApiKeyRestriction) IsNullContext(ctx interface{}) bool {
+	asserted, ok := ctx.(*apiKeyContext)
+	if !ok {
+		return false
+	}
+
+	return asserted.Hash == ""
+}
+
+func (ApiKeyRestriction) SerializeForm(req *http.Request, enabled bool, oldCtx interface{}) (interface{}, error) {
+	value := strings.TrimSpace(req.FormValue("restriction_api_key_key"))
 
 	if len(value) == 0 {
 		if oldCtx == nil {
@@ -39,7 +46,7 @@ type apiKeyAccessContext struct {
 	Error string `json:"error"`
 }
 
-func (ApiKeyAuthentication) CheckAccess(request *http.Request, context interface{}) (bool, interface{}) {
+func (ApiKeyRestriction) CheckAccess(request *http.Request, context interface{}) (bool, interface{}) {
 	ctx, okay := context.(*apiKeyContext)
 	if !okay {
 		return false, apiKeyAccessContext{"Invalid context given. This should never happen."}

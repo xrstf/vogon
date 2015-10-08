@@ -30,13 +30,6 @@
 					</select>
 				</div>
 				<div class="form-group">
-					<select class="form-control select2" name="authentication" data-placeholder="Choose authentication status…">
-						<option value="all"{{if eq .AuthenticationSuccess "all"}} selected{{end}}>(all authentication states)</option>
-						<option value="success"{{if eq .AuthenticationSuccess "success"}} selected{{end}}>authentication success</option>
-						<option value="failure"{{if eq .AuthenticationSuccess "failure"}} selected{{end}}>authentication failure</option>
-					</select>
-				</div>
-				<div class="form-group">
 					<select class="form-control select2" name="restriction" data-placeholder="Choose restriction status…">
 						<option value="all"{{if eq .RestrictionSuccess "all"}} selected{{end}}>(all restriction states)</option>
 						<option value="success"{{if eq .RestrictionSuccess "success"}} selected{{end}}>restriction success</option>
@@ -83,7 +76,6 @@
 					{{range .Entries}}
 					<tr>
 						<td>
-							<span class="label label-{{if .AuthenticationSuccess}}success{{else}}danger{{end}}">A</span>
 							<span class="label label-{{if .RestrictionSuccess}}success{{else}}danger{{end}}">R</span>
 						</td>
 						<td>{{time .RequestedAt}}</td>
