@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"html/template"
 	"log"
 	"path/filepath"
@@ -46,6 +47,19 @@ func NewTemplateManager(rootDir string) *TemplateManager {
 			pretty := t.Format("Mon, Jan 2 2006 15:04:05 MST")
 
 			return template.HTML("<time class=\"rel\" datetime=\"" + iso + "\">" + pretty + "</time>")
+		},
+
+		"shorten": func(value string, maxlen int) string {
+			length := len(value)
+
+			if length <= maxlen {
+				return value
+			}
+
+			halfs := maxlen / 2
+			runes := []rune(value)
+
+			return fmt.Sprintf("%s…%s", string(runes[:halfs]), string(runes[(length-halfs):]))
 		},
 	}
 

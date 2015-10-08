@@ -98,36 +98,36 @@
 {{define "audit_description"}}
 {{$user := .GetCreator.Name}}
 
-<i class="fa fa-user"></i> <a href="/users/{{.CreatedBy}}">{{$user}}</a>
+<i class="fa fa-user"></i> <a href="/users/{{.CreatedBy}}">{{shorten $user 20}}</a>
 {{if eq .Action "user-login"}}
-	logged in from <em>{{.OriginIp}}</em> using <em>{{.UserAgent}}</em>.
+	logged in from <em>{{.OriginIp}}</em> using <em title="{{.UserAgent}}">{{shorten .UserAgent 40}}</em>.
 {{else if eq .Action "user-created"}}
 	{{$subject := .GetUser.Name}}
-	created the user <i class="fa fa-user"></i> <a href="/users/{{.User}}">{{$subject}}</a>.</span>
+	created <i class="fa fa-user"></i> <a href="/users/{{.User}}">{{shorten $subject 30}}</a>.</span>
 {{else if eq .Action "user-updated"}}
 	{{$subject := .GetUser.Name}}
-	updated the user <i class="fa fa-user"></i> <a href="/users/{{.User}}">{{$subject}}</a>.</span>
+	updated <i class="fa fa-user"></i> <a href="/users/{{.User}}">{{shorten $subject 30}}</a>.</span>
 {{else if eq .Action "user-deleted"}}
 	{{$subject := .GetUser.Name}}
-	deleted the user <i class="fa fa-user"></i> <a href="/users/{{.User}}">{{$subject}}</a>.</span>
+	deleted <i class="fa fa-user"></i> <a href="/users/{{.User}}">{{shorten $subject 30}}</a>.</span>
 {{else if eq .Action "secret-created"}}
 	{{$secret := .GetSecret.Name}}
-	created the secret <i class="fa fa-key"></i> <a href="/secrets/{{.Secret}}">{{$secret}}</a>.</span>
+	created <i class="fa fa-key"></i> <a href="/secrets/{{.Secret}}">{{shorten $secret 30}}</a>.</span>
 {{else if eq .Action "secret-updated"}}
 	{{$secret := .GetSecret.Name}}
-	updated the secret <i class="fa fa-key"></i> <a href="/secrets/{{.Secret}}">{{$secret}}</a>.</span>
+	updated <i class="fa fa-key"></i> <a href="/secrets/{{.Secret}}">{{shorten $secret 30}}</a>.</span>
 {{else if eq .Action "secret-deleted"}}
 	{{$secret := .GetSecret.Name}}
-	deleted the secret <i class="fa fa-key"></i> <a href="/secrets/{{.Secret}}">{{$secret}}</a>.</span>
+	deleted <i class="fa fa-key"></i> <a href="/secrets/{{.Secret}}">{{shorten $secret 30}}</a>.</span>
 {{else if eq .Action "consumer-created"}}
 	{{$consumer := .GetConsumer.Name}}
-	created the consumer <i class="fa fa-truck"></i> <a href="/consumers/{{.Consumer}}">{{$consumer}}</a>.</span>
+	created <i class="fa fa-truck"></i> <a href="/consumers/{{.Consumer}}">{{shorten $consumer 30}}</a>.</span>
 {{else if eq .Action "consumer-updated"}}
 	{{$consumer := .GetConsumer.Name}}
-	updated the consumer <i class="fa fa-truck"></i> <a href="/consumers/{{.Consumer}}">{{$consumer}}</a>.</span>
+	updated <i class="fa fa-truck"></i> <a href="/consumers/{{.Consumer}}">{{shorten $consumer 30}}</a>.</span>
 {{else if eq .Action "consumer-deleted"}}
 	{{$consumer := .GetConsumer.Name}}
-	deleted the consumer <i class="fa fa-truck"></i> <a href="/consumers/{{.Consumer}}">{{$consumer}}</a>.</span>
+	deleted <i class="fa fa-truck"></i> <a href="/consumers/{{.Consumer}}">{{shorten $consumer 30}}</a>.</span>
 {{end}}
 
 {{end}}
@@ -159,7 +159,7 @@
 {{$secret := .GetSecret}}
 
 {{if $consumer}}
-<i class="fa fa-truck"></i> <a href="/consumers/{{.Consumer}}" title="{{.OriginIp}}">{{$consumer.Name}}</a>
+<i class="fa fa-truck"></i> <a href="/consumers/{{.Consumer}}" title="{{.OriginIp}}">{{shorten $consumer.Name 30}}</a>
 {{else}}
 <span class="text-danger"><i class="fa fa-question-circle"></i> <tt>{{.OriginIp}}</tt></span>
 {{end}}
@@ -167,9 +167,8 @@
 accessed
 
 {{if $secret}}
-<i class="fa fa-key"></i> <a href="/secrets/{{.Secret}}">{{$secret.Name}}</a>.
+<i class="fa fa-key"></i> <a href="/secrets/{{.Secret}}">{{shorten $secret.Name 30}}</a>.
 {{else}}
 <span class="text-danger"><i class="fa fa-question-circle"></i> an unknown secret.</span>
 {{end}}
-
 {{end}}

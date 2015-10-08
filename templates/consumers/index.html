@@ -31,7 +31,7 @@
 				<tbody>
 					{{range .Consumers}}
 					<tr>
-						<td><i class="fa fa-truck"></i> <a href="/consumers/{{.Id}}">{{.Name}}</a></td>
+						<td><i class="fa fa-truck"></i> <a href="/consumers/{{.Id}}">{{shorten .Name 50}}</a></td>
 						<td>{{if .Enabled}}<span class="label label-success">enabled</span>{{else}}<span class="label label-default">disabled</span>{{end}}</td>
 						<td><i class="fa fa-link"></i> <a href="/consumers/{{.Id}}/urls">Secret URLs</a></td>
 						<td>
@@ -42,10 +42,10 @@
 							{{end}}
 						</td>
 						<td>{{if .LastSeenAt}}<i class="fa fa-list-alt"></i> <a href="/accesslog?consumers[]={{.Id}}">{{time .LastSeenAt}}</a>{{else}}(never){{end}}</td>
-						<td>{{time .CreatedAt}} by <i class="fa fa-user"></i> <a href="/users/{{.CreatedBy}}">{{.GetCreator.Name}}</a></td>
+						<td>{{time .CreatedAt}} by <i class="fa fa-user"></i> <a href="/users/{{.CreatedBy}}">{{shorten .GetCreator.Name 20}}</a></td>
 						<td>
 							{{if .UpdatedAt}}
-								{{time .UpdatedAt}} by <i class="fa fa-user"></i> <a href="/users/{{.UpdatedBy}}">{{.GetUpdater.Name}}</a>
+								{{time .UpdatedAt}} by <i class="fa fa-user"></i> <a href="/users/{{.UpdatedBy}}">{{shorten .GetUpdater.Name 20}}</a>
 							{{else}}
 								(never)
 							{{end}}
