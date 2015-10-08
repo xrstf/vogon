@@ -132,7 +132,7 @@ func main() {
 	m.Action(r.Handle)
 
 	martini := &martini.ClassicMartini{m, r}
-	setupOverviewCtrl(martini)
+	setupDashboardCtrl(martini)
 	setupSessionCtrl(martini)
 	setupSecretsCtrl(martini)
 	setupUsersCtrl(martini)

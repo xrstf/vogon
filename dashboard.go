@@ -14,7 +14,7 @@ type accessLogEntry struct {
 	Origin string
 }
 
-type overviewData struct {
+type dashboardData struct {
 	layoutData
 
 	Secrets    int
@@ -22,10 +22,10 @@ type overviewData struct {
 	Users      int
 	RecentHits int
 	AuditLog   []AuditLogEntry
-	AccessLog  []accessLogEntry
+	AccessLog  []AccessLogEntry
 }
 
-func overviewIndexAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx) response {
+func dashboardAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx) response {
 	secrets := countResultSet{}
 	db.Get(&secrets, "SELECT COUNT(*) AS `num` FROM `secret`")
 
@@ -39,20 +39,21 @@ func overviewIndexAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx
 	db.Get(&recentHits, "SELECT COUNT(*) AS `num` FROM `access_log`")
 
 	auditLog := NewAuditLog(db, req)
+	accessLog := NewAccessLog(db)
 
-	data := &overviewData{
+	data := &dashboardData{
 		layoutData: NewLayoutData("Dashboard", "dashboard", user, x.GetToken()),
 		Secrets:    secrets.Count,
 		Consumers:  consumers.Count,
 		Users:      users.Count,
 		RecentHits: recentHits.Count,
 		AuditLog:   auditLog.FindAll(10, 0),
-		AccessLog:  make([]accessLogEntry, 0),
+		AccessLog:  accessLog.FindAll(10, 0),
 	}
 
-	return renderTemplate(200, "overview/index", data)
+	return renderTemplate(200, "dashboard/index", data)
 }
 
-func setupOverviewCtrl(app *martini.ClassicMartini) {
-	app.Get("/", sessionauth.LoginRequired, overviewIndexAction)
+func setupDashboardCtrl(app *martini.ClassicMartini) {
+	app.Get("/", sessionauth.LoginRequired, dashboardAction)
 }
