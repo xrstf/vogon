@@ -145,3 +145,31 @@
 {{else if eq .Action "consumer-deleted"}}<span class="label label-danger"><i class="fa fa-truck"></i> consumer</span>
 {{end}}
 {{end}}
+
+{{define "accesslog_status"}}
+{{if eq .Status 200}}
+<span class="label label-success"><i class="fa fa-check" style="width:10px"></i></span>
+{{else}}
+<span class="label label-danger"><i class="fa fa-close" style="width:10px"></i></span>
+{{end}}
+{{end}}
+
+{{define "accesslog_description"}}
+{{$consumer := .GetConsumer}}
+{{$secret := .GetSecret}}
+
+{{if $consumer}}
+<i class="fa fa-truck"></i> <a href="/consumers/{{.Consumer}}" title="{{.OriginIp}}">{{$consumer.Name}}</a>
+{{else}}
+<span class="text-danger"><i class="fa fa-question-circle"></i> <tt>{{.OriginIp}}</tt></span>
+{{end}}
+
+accessed
+
+{{if $secret}}
+<i class="fa fa-key"></i> <a href="/secrets/{{.Secret}}">{{$secret.Name}}</a>.
+{{else}}
+<span class="text-danger"><i class="fa fa-question-circle"></i> an unknown secret.</span>
+{{end}}
+
+{{end}}

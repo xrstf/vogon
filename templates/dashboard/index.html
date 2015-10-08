@@ -137,18 +137,17 @@
 			<div class="panel-body">
 				<div class="list-group">
 					{{range .AccessLog}}
-					<a href="#" class="list-group-item">
-						<span class="badge">just now</span>
-						<i class="fa fa-fw fa-calendar"></i> Calendar updated
-					</a>
+					<span class="list-group-item">
+						{{template "accesslog_status" .}}
+						<span class="badge">{{time .RequestedAt}}</span>
+						{{template "accesslog_description" .}}
+					</span>
 					{{else}}
 					<p>No hits yet.</p>
 					{{end}}
 				</div>
 				{{if .AccessLog}}
-				<div class="text-right">
-					<a href="/accesslog">View All Activity <i class="fa fa-arrow-circle-right"></i></a>
-				</div>
+				<a href="/accesslog" class="btn btn-default btn-block">View All <i class="fa fa-arrow-circle-right"></i></a>
 				{{end}}
 			</div>
 		</div>

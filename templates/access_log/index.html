@@ -75,14 +75,8 @@
 				<tbody>
 					{{range .Entries}}
 					<tr>
-						<td>
-							{{if eq .Status 200}}
-							<span class="label label-success"><i class="fa fa-check"></i></span>
-							{{else}}
-							<span class="label label-danger"><i class="fa fa-close"></i></span>
-							{{end}}
-						</td>
 						<td>{{time .RequestedAt}}</td>
+						<td>{{template "accesslog_status" .}}</td>
 						<td>{{.OriginIp}}</td>
 						<td>{{if .Consumer}}<i class="fa fa-truck"></i> <a href="/consumers/{{.Consumer}}">{{.GetConsumer.Name}}</a>{{else}}(N/A){{end}}</td>
 						<td>{{if .Secret}}<i class="fa fa-key"></i> <a href="/secrets/{{.Secret}}">{{.GetSecret.Name}}</a>{{else}}(N/A){{end}}</td>

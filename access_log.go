@@ -69,6 +69,7 @@ func (e *AccessLogEntry) GetConsumer() *Consumer {
 }
 
 type AccessLog interface {
+	FindAll(int, int) []AccessLogEntry
 	Find([]int, []int, []int, int, int) []AccessLogEntry
 	Count([]int, []int, []int) int
 
@@ -82,6 +83,12 @@ type accessLogStruct struct {
 
 func NewAccessLog(db *sqlx.Tx) AccessLog {
 	return &accessLogStruct{db}
+}
+
+func (a *accessLogStruct) FindAll(limit int, offset int) []AccessLogEntry {
+	empty := make([]int, 0)
+
+	return a.Find(empty, empty, empty, limit, offset)
 }
 
 func (a *accessLogStruct) Find(secretIds []int, consumerIds []int, states []int, limit int, offset int) []AccessLogEntry {
