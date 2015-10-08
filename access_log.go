@@ -203,6 +203,11 @@ type accessLogListData struct {
 	Pager     pager.Pager
 }
 
+func (a *accessLogListData) HasStatus(status int) bool {
+	_, ok := a.States[status]
+	return ok
+}
+
 func accessLogIndexAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx) response {
 	selectedSecrets := getIntList(req, "secrets[]")
 	selectedConsumers := getIntList(req, "consumers[]")

@@ -30,10 +30,10 @@
 					</select>
 				</div>
 				<div class="form-group">
-					<select class="form-control select2" name="restriction" data-placeholder="Choose restriction status…">
-						<option value="all"{{if eq .RestrictionSuccess "all"}} selected{{end}}>(all restriction states)</option>
-						<option value="success"{{if eq .RestrictionSuccess "success"}} selected{{end}}>restriction success</option>
-						<option value="failure"{{if eq .RestrictionSuccess "failure"}} selected{{end}}>restriction failure</option>
+					<select class="form-control select2" name="status[]" data-placeholder="Choose states…" multiple>
+						<option value="200"{{if .HasStatus 200}} selected{{end}}>200 (OK)</option>
+						<option value="403"{{if .HasStatus 403}} selected{{end}}>403 (Forbidden)</option>
+						<option value="404"{{if .HasStatus 404}} selected{{end}}>404 (Not Found)</option>
 					</select>
 				</div>
 				<div class="form-group">
@@ -76,7 +76,11 @@
 					{{range .Entries}}
 					<tr>
 						<td>
-							<span class="label label-{{if .RestrictionSuccess}}success{{else}}danger{{end}}">R</span>
+							{{if eq .Status 200}}
+							<span class="label label-success"><i class="fa fa-check"></i></span>
+							{{else}}
+							<span class="label label-danger"><i class="fa fa-close"></i></span>
+							{{end}}
 						</td>
 						<td>{{time .RequestedAt}}</td>
 						<td>{{.OriginIp}}</td>
