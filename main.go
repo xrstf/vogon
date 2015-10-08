@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
+	"github.com/alecthomas/kingpin"
 	"github.com/go-martini/martini"
 	"github.com/jmoiron/sqlx"
 	"github.com/martini-contrib/csrf"
@@ -16,13 +19,35 @@ import (
 
 var templateManager *TemplateManager
 var restrictionHandlers map[string]RestrictionHandler
+var config *configuration
+
+var (
+	password   = kingpin.Flag("password", "Encryption key in plain text (discouraged)").String()
+	configFile = kingpin.Flag("config", "Configuration file to use").ExistingFile()
+)
 
 func main() {
+	kingpin.UsageTemplate(kingpin.CompactUsageTemplate).Version("1.0").Author("Christoph Mewes")
+	kingpin.CommandLine.Help = "HTTP application server to run the Raziel secret management"
+	kingpin.Parse()
+
+	if *configFile == "" {
+		kingpin.FatalUsage("No configuration file (--config) given!")
+	}
+
+	// load config file
+	err := loadConfigFile()
+	if err != nil {
+		kingpin.FatalUsage(err.Error())
+	}
+
+	// init templates
 	templateManager = NewTemplateManager("templates")
 
-	database, err := sqlx.Connect("mysql", "develop:develop@/raziel")
+	// connect to database
+	database, err := sqlx.Connect("mysql", config.Database.Source)
 	if err != nil {
-		panic("nop")
+		kingpin.FatalUsage(err.Error())
 	}
 
 	restrictionHandlers = make(map[string]RestrictionHandler)
@@ -37,7 +62,11 @@ func main() {
 
 	// setup basic Martini server
 
-	// martini.Env = martini.Prod
+	martini.Env = martini.Dev
+
+	if config.Environment == "production" || config.Environment == "prod" {
+		martini.Env = martini.Prod
+	}
 
 	m := martini.New()
 	m.Use(martini.Logger())
@@ -69,7 +98,7 @@ func main() {
 
 	// initialize basic session support
 
-	store := sessions.NewCookieStore([]byte("secret123"))
+	store := sessions.NewCookieStore([]byte(config.SessionKey))
 	session := sessions.Sessions("my_session", store)
 
 	m.Use(session)
@@ -109,7 +138,7 @@ func main() {
 	// initialize CSRF protection
 
 	m.Use(csrf.Generate(&csrf.Options{
-		Secret:     "token123",
+		Secret:     config.CsrfKey,
 		SessionKey: sessionauth.SessionKey,
 		// Custom error response.
 		ErrorFunc: func(w http.ResponseWriter) {
@@ -146,4 +175,19 @@ func main() {
 
 func addRestrictionHandler(handler RestrictionHandler) {
 	restrictionHandlers[handler.GetIdentifier()] = handler
+}
+
+func loadConfigFile() error {
+	content, err := ioutil.ReadFile(*configFile)
+	if err != nil {
+		return err
+	}
+
+	config = &configuration{}
+	err = json.Unmarshal(content, &config)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

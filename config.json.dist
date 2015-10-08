@@ -1,0 +1,10 @@
+{
+  "database": {
+    "source": "username:password@localhost/dbname",
+    "passwordFile": "your super secret encryption key",
+    "deleteOnBoot": false
+  },
+  "environment": "dev or prod"
+  "sessionKey": "the key to encrypt client-side session data with",
+  "csrfKey": "the secret to generate CSRF tokens"
+}
