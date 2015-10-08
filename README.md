@@ -17,7 +17,7 @@ All access (attempts) and changes to secrets are logged in access and audit logs
 Build from Source
 =================
 
-You wil need a recent Go compiler, at least version 1.4.
+You will need a recent Go compiler, at least version 1.4.
 
 ```
 go get github.com/xrstf/raziel
