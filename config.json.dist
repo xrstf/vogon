@@ -1,10 +1,33 @@
 {
   "database": {
     "source": "username:password@localhost/dbname",
-    "passwordFile": "your super secret encryption key",
+    "passwordFile": "path to a file containing your holy master encryption key",
     "deleteOnBoot": false
   },
   "environment": "dev or prod"
   "sessionKey": "the key to encrypt client-side session data with",
-  "csrfKey": "the secret to generate CSRF tokens"
+  "csrfKey": "the secret to generate CSRF tokens",
+  "server": {
+    "listen": "localhost:443",
+    "certificate": "/path/to/server/cert.pem",
+    "privateKey": "/path/to/cert/private.key",
+    "ciphers": [
+      "TLS_RSA_WITH_RC4_128_SHA",
+      "TLS_RSA_WITH_3DES_EDE_CBC_SHA",
+      "TLS_RSA_WITH_AES_128_CBC_SHA",
+      "TLS_RSA_WITH_AES_256_CBC_SHA",
+      "TLS_ECDHE_ECDSA_WITH_RC4_128_SHA",
+      "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
+      "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+      "TLS_ECDHE_RSA_WITH_RC4_128_SHA",
+      "TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA",
+      "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+      "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+      "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+      "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+      "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+      "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+      "TLS_FALLBACK_SCSV"
+    ]
+  }
 }

@@ -8,4 +8,4 @@ fix: *.go
 	gofmt -l -w .
 
 run: build
-	./raziel.exe
+	./raziel.exe --config config.json

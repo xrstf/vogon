@@ -1,8 +1,10 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -170,7 +172,16 @@ func main() {
 	setupAccessLogCtrl(martini)
 	setupDeliveryCtrl(martini)
 
-	martini.Run()
+	// setup our own http server and configure TLS
+	srv := &http.Server{
+		Addr:    config.Server.Listen,
+		Handler: martini,
+		TLSConfig: &tls.Config{
+			CipherSuites: config.CipherSuites(),
+		},
+	}
+
+	log.Fatal(srv.ListenAndServeTLS(config.Server.Certificate, config.Server.PrivateKey))
 }
 
 func addRestrictionHandler(handler RestrictionHandler) {
