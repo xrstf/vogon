@@ -24,3 +24,15 @@ go get github.com/xrstf/raziel
 cd $GOPATH/src/github.com/xrstf/raziel
 make
 ```
+
+Installation
+============
+
+Create a TLS certificate if you don't have one. If you are only playing around, you can generate
+your own using Go's TLS package:
+
+    go run $GOROOT/src/crypto/tls/generate_cert.go --host localhost
+
+Copy the ``config.json.dist`` and adjust it accordingly. Then, run Raziel:
+
+    ./raziel --config myconfig.json
