@@ -150,9 +150,11 @@ func main() {
 
 	// re-compile all templates on each hit
 
-	m.Use(func() {
-		templateManager.Init()
-	})
+	if martini.Env != martini.Prod {
+		m.Use(func() {
+			templateManager.Init()
+		})
+	}
 
 	// use a custom return handler to make our mini response structs possible
 	// (this overwrites the existing handler)
