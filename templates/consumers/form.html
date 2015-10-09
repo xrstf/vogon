@@ -14,50 +14,63 @@
 
 <div class="row">
 	<div class="col-lg-10 col-lg-offset-1">
-		<form method="post" action="{{if .Consumer}}/consumers/{{.Consumer}}{{else}}/consumers{{end}}" role="form" id="consumer-form">
-			<div class="well">
-				<div class="form-group{{if .NameError}} has-error{{end}}">
-					<input type="hidden" name="_csrf" value="{{.CsrfToken}}">
-					{{if .Consumer}}<input type="hidden" name="_method" value="PUT">{{end}}
-					<label for="name" class="control-label">Name:</label>
-					<input class="form-control" id="name" name="name" value="{{.Name}}" required placeholder="Jenkins Build for Project X">
-					<p class="help-block">
-						{{if .NameError}}{{.NameError}}{{else}}This is how the consumer is refered to within Raziel's UI.{{end}}
-					</p>
+		<form method="post" action="{{if .Consumer}}/consumers/{{.Consumer}}{{else}}/consumers{{end}}" role="form" id="consumer-form" class="form-horizontal">
+			<div class="panel panel-info">
+				<div class="panel-heading">
+					<i class="fa fa-edit"></i> Edit Consumer
 				</div>
-
-				<div class="form-group">
-					<label for="name" class="control-label">Status:</label>
-					<div class="checkbox">
-						<label><input type="checkbox" value="1" name="enabled"{{if .Enabled}} checked{{end}}> This consumer shall be enabled.</label>
+				<div class="panel-body">
+					<div class="form-group{{if .NameError}} has-error{{end}}">
+						<input type="hidden" name="_csrf" value="{{.CsrfToken}}">
+						{{if .Consumer}}<input type="hidden" name="_method" value="PUT">{{end}}
+						<label for="name" class="col-lg-2 control-label">Name:</label>
+						<div class="col-lg-6">
+							<input class="form-control" id="name" name="name" value="{{.Name}}" required placeholder="Jenkins Build for Project X">
+							<p class="help-block">
+								{{if .NameError}}{{.NameError}}{{else}}This is how the consumer is refered to within Raziel's UI.{{end}}
+							</p>
+						</div>
 					</div>
-				</div>
 
-				<div class="form-group{{if .NameError}} has-error{{end}}">
-					<label for="name" class="control-label">Assigned Secrets:</label>
-					{{range .Secrets}}
-					<div class="checkbox">
-						<label><input type="checkbox" value="1" name="secret_{{.Id}}"{{if .Checked}} checked{{end}}> {{.Name}}</label>
+					<div class="form-group">
+						<label for="name" class="col-lg-2 control-label">Status:</label>
+						<div class="col-lg-6">
+							<div class="checkbox">
+								<label><input type="checkbox" value="1" name="enabled"{{if .Enabled}} checked{{end}}> This consumer shall be enabled.</label>
+							</div>
+						</div>
 					</div>
-					{{end}}
-					<p class="help-block">
-						The consumer is allowed to access any of the secrets selected above.
-					</p>
-				</div>
 
-				<div class="form-group{{if .InfoTokenError}} has-error{{end}}">
-					<label for="info_token" class="control-label">Information URL Token:</label>
-					<input class="form-control" id="info_token" name="info_token" value="{{if .InfoToken}}{{.InfoToken}}{{end}}" placeholder="a random string like 320948i4wzfbw98f7gw">
-					<p class="help-block">
-						{{if .InfoTokenError}}
-						{{.InfoTokenError}}
-						{{else}}
-						This alphanumeric token controls the availablity of a public information page for
-						this consumer. When it is not set, no such page is available. The info page is
-						intended for non-Raziel users that need to know how to get the secrets they are
-						assigned to. The actual URL is available from the consumer list view.
-						{{end}}
-					</p>
+					<div class="form-group{{if .NameError}} has-error{{end}}">
+						<label for="name" class="col-lg-2 control-label">Assigned Secrets:</label>
+						<div class="col-lg-8">
+							{{range .Secrets}}
+							<div class="checkbox">
+								<label><input type="checkbox" value="1" name="secret_{{.Id}}"{{if .Checked}} checked{{end}}> {{.Name}}</label>
+							</div>
+							{{end}}
+							<p class="help-block">
+								The consumer is allowed to access any of the secrets selected above.
+							</p>
+						</div>
+					</div>
+
+					<div class="form-group{{if .InfoTokenError}} has-error{{end}}">
+						<label for="info_token" class="col-lg-2 control-label">Information URL Token:</label>
+						<div class="col-lg-6">
+							<input class="form-control" id="info_token" name="info_token" value="{{if .InfoToken}}{{.InfoToken}}{{end}}" placeholder="a random string like 320948i4wzfbw98f7gw">
+							<p class="help-block">
+								{{if .InfoTokenError}}
+								{{.InfoTokenError}}
+								{{else}}
+								This alphanumeric token controls the availablity of a public information page for
+								this consumer. When it is not set, no such page is available. The info page is
+								intended for non-Raziel users that need to know how to get the secrets they are
+								assigned to. The actual URL is available from the consumer list view.
+								{{end}}
+							</p>
+						</div>
+					</div>
 				</div>
 			</div>
 
@@ -73,16 +86,20 @@
 			{{template "restriction_hit_limit" .Restrictions.hit_limit}}
 			{{template "restriction_throttle" .Restrictions.throttle}}
 
-			<div class="well">
-				{{if .Consumer}}
-				<div class="pull-right">
-					<a class="btn btn-danger" href="/consumers/{{.Consumer}}/delete"><i class="fa fa-trash-o"></i> Delete</a>
-				</div>
-				{{end}}
+			<div class="panel panel-default">
+				<div class="panel-footer">
+					{{if .Consumer}}
+					<div class="pull-right">
+						<a class="btn btn-danger" href="/consumers/{{.Consumer}}/delete"><i class="fa fa-trash-o"></i> Delete</a>
+					</div>
+					{{end}}
 
-				<div>
-					<button type="submit" class="btn btn-primary"><i class="fa fa-check"></i> {{if .Consumer}}Update{{else}}Save{{end}}</button>
-					<button type="reset" class="btn btn-default"><i class="fa fa-undo"></i> Reset</button>
+					<div class="row">
+						<div class="col-lg-5 col-lg-offset-2">
+							<button type="submit" class="btn btn-primary"><i class="fa fa-check"></i> {{if .Consumer}}Update{{else}}Save{{end}}</button>
+							<button type="reset" class="btn btn-default"><i class="fa fa-undo"></i> Reset</button>
+						</div>
+					</div>
 				</div>
 			</div>
 		</form>
