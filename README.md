@@ -15,7 +15,7 @@ Secrets are stored in an encrypted fashion in a MariaDB database.
 All access (attempts) and changes to secrets are logged in access and audit logs.
 
 Build from Source
-=================
+-----------------
 
 You will need a recent Go compiler, at least version 1.4.
 
@@ -26,13 +26,17 @@ make
 ```
 
 Installation
-============
+------------
 
 Create a TLS certificate if you don't have one. If you are only playing around, you can generate
 your own using Go's TLS package:
 
     go run $GOROOT/src/crypto/tls/generate_cert.go --host localhost
 
-Copy the ``config.json.dist`` and adjust it accordingly. Then, run Raziel:
+Copy the ``config.json.dist`` and adjust it accordingly.
+
+Now go ahead and initialize your database by executing the ``resources/schema.sql``.
+
+Then, run Raziel:
 
     ./raziel --config myconfig.json
