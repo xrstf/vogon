@@ -95,7 +95,13 @@ func getIP(req *http.Request) string {
 		panic(err)
 	}
 
-	return ip
+	// make sure we store the shortest form of the IP
+	parsed := net.ParseIP(ip)
+	if parsed == nil {
+		panic(errors.New("IP '" + ip + "' could not be parsed as an IP."))
+	}
+
+	return parsed.String()
 }
 
 func isInIntList(needle int, haystack []int) bool {

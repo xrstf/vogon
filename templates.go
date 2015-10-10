@@ -44,7 +44,7 @@ func NewTemplateManager(rootDir string) *TemplateManager {
 
 			// get timezone information
 			iso := t.Format("2006-01-02T15:04:05-0700")
-			pretty := t.Format("Mon, Jan 2 2006 15:04:05 MST")
+			pretty := t.Format("Mon, Jan 2 2006 15:04")
 
 			return template.HTML("<time class=\"rel\" datetime=\"" + iso + "\">" + pretty + "</time>")
 		},

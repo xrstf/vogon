@@ -22,9 +22,37 @@
 	}
 	.filter-form .form-group select {
 		min-width: 260px;
-		width: 100%;
+	}
+	.col-date, .col-lastseen, .col-lastlogin {
+		width: 150px;
+	}
+	.col-context {
+		width: 110px;
+	}
+	.col-origin {
+		width: 150px;
+	}
+	.col-status {
+		width: 50px;
+	}
+	.col-info, .col-urls {
+		width: 125px;
+	}
+	td.col-status {
+		text-align: center;
+	}
+	.col-details {
+		width: 90px;
 	}
 	</style>
+
+	<!-- load scripts in the head to prevent flash of unstyled content and distracting timeago stuff -->
+	<script src="/js/jquery.min.js"></script>
+	<script src="/js/bootstrap.min.js"></script>
+	<script src="/js/bootstrap-toggle.min.js"></script>
+	<script src="/js/select2.min.js"></script>
+	<script src="/js/jquery.timeago.js"></script>
+	<script src="/js/raziel.js"></script>
 </head>
 <body>
 	<div id="wrapper">
@@ -85,12 +113,6 @@
 		</div>
 	</div>
 
-	<script src="/js/jquery.min.js"></script>
-	<script src="/js/bootstrap.min.js"></script>
-	<script src="/js/bootstrap-toggle.min.js"></script>
-	<script src="/js/select2.min.js"></script>
-	<script src="/js/jquery.timeago.js"></script>
-	<script src="/js/raziel.js"></script>
 </body>
 </html>
 {{end}}

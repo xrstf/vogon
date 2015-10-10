@@ -16,34 +16,34 @@
 	<div class="col-lg-12">
 		<p><a href="/consumers/add" class="btn btn-primary"><i class="fa fa-plus"></i> Add Consumer</a></p>
 		<div class="table-responsive">
-			<table class="table table-hover table-striped">
+			<table class="table table-hover table-striped table-consumers">
 				<thead>
 					<tr>
-						<th>Name</th>
-						<th>Status</th>
-						<th>&nbsp;</th>
-						<th>&nbsp;</th>
-						<th>Last Seen</th>
-						<th>Created</th>
-						<th>Updated</th>
+						<th class="col-name">Name</th>
+						<th class="col-status">Status</th>
+						<th class="col-urls">&nbsp;</th>
+						<th class="col-info">&nbsp;</th>
+						<th class="col-lastseen">Last Seen</th>
+						<th class="col-created">Created</th>
+						<th class="col-updated">Updated</th>
 					</tr>
 				</thead>
 				<tbody>
 					{{range .Consumers}}
 					<tr>
-						<td><i class="fa fa-truck"></i> <a href="/consumers/{{.Id}}">{{shorten .Name 50}}</a></td>
-						<td>{{if .Enabled}}<span class="label label-success">enabled</span>{{else}}<span class="label label-default">disabled</span>{{end}}</td>
-						<td><i class="fa fa-link"></i> <a href="/consumers/{{.Id}}/urls">Secret URLs</a></td>
-						<td>
+						<td class="col-name"><i class="fa fa-truck"></i> <a href="/consumers/{{.Id}}">{{shorten .Name 50}}</a></td>
+						<td class="col-status">{{if .Enabled}}<span class="label label-success">enabled</span>{{else}}<span class="label label-default">disabled</span>{{end}}</td>
+						<td class="col-urls"><i class="fa fa-link"></i> <a href="/consumers/{{.Id}}/urls">Secret URLs</a></td>
+						<td class="col-info">
 							{{if .InfoToken}}
 							<i class="fa fa-info-circle"></i> <a href="/info/{{.GetIdentifier}}/{{.InfoToken}}" target="_blank">Info Page</a> <sup><small><i class="fa fa-external-link"></i></small></sup>
 							{{else}}
 							&nbsp;
 							{{end}}
 						</td>
-						<td>{{if .LastSeenAt}}<i class="fa fa-list-alt"></i> <a href="/accesslog?consumers[]={{.Id}}">{{time .LastSeenAt}}</a>{{else}}(never){{end}}</td>
-						<td>{{time .CreatedAt}} by <i class="fa fa-user"></i> <a href="/users/{{.CreatedBy}}">{{shorten .GetCreator.Name 20}}</a></td>
-						<td>
+						<td class="col-lastseen">{{if .LastSeenAt}}<i class="fa fa-list-alt"></i> <a href="/accesslog?consumers[]={{.Id}}">{{time .LastSeenAt}}</a>{{else}}(never){{end}}</td>
+						<td class="col-created">{{time .CreatedAt}} by <i class="fa fa-user"></i> <a href="/users/{{.CreatedBy}}">{{shorten .GetCreator.Name 20}}</a></td>
+						<td class="col-updated">
 							{{if .UpdatedAt}}
 								{{time .UpdatedAt}} by <i class="fa fa-user"></i> <a href="/users/{{.UpdatedBy}}">{{shorten .GetUpdater.Name 20}}</a>
 							{{else}}

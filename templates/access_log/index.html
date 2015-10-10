@@ -61,26 +61,26 @@
 		</nav>
 
 		<div class="table-responsive">
-			<table class="table table-hover table-striped">
+			<table class="table table-hover table-striped table-accesslog">
 				<thead>
 					<tr>
-						<th>Status</th>
-						<th>Date</th>
-						<th>Origin</th>
-						<th>Consumer</th>
-						<th>Secret</th>
-						<th>Details</th>
+						<th class="col-date">Date</th>
+						<th class="col-status">Status</th>
+						<th class="col-origin">Origin</th>
+						<th class="col-consumer">Consumer</th>
+						<th class="col-secret">Secret</th>
+						<th class="col-details">Details</th>
 					</tr>
 				</thead>
 				<tbody>
 					{{range .Entries}}
 					<tr>
-						<td>{{time .RequestedAt}}</td>
-						<td>{{template "accesslog_status" .}}</td>
-						<td>{{.OriginIp}}</td>
-						<td>{{if .Consumer}}<i class="fa fa-truck"></i> <a href="/consumers/{{.Consumer}}">{{.GetConsumer.Name}}</a>{{else}}(N/A){{end}}</td>
-						<td>{{if .Secret}}<i class="fa fa-key"></i> <a href="/secrets/{{.Secret}}">{{.GetSecret.Name}}</a>{{else}}(N/A){{end}}</td>
-						<td><i class="fa fa-search-plus"></i> <a href="/accesslog/{{.Id}}">Details</a></td>
+						<td class="col-date">{{time .RequestedAt}}</td>
+						<td class="col-status">{{template "accesslog_status" .}}</td>
+						<td class="col-origin">{{.OriginIp}}</td>
+						<td class="col-consumer">{{if .Consumer}}<i class="fa fa-truck"></i> <a href="/consumers/{{.Consumer}}">{{.GetConsumer.Name}}</a>{{else}}(N/A){{end}}</td>
+						<td class="col-secret">{{if .Secret}}<i class="fa fa-key"></i> <a href="/secrets/{{.Secret}}">{{.GetSecret.Name}}</a>{{else}}(N/A){{end}}</td>
+						<td class="col-details"><i class="fa fa-search-plus"></i> <a href="/accesslog/{{.Id}}">Details</a></td>
 					</tr>
 					{{end}}
 				</tbody>
