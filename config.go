@@ -21,6 +21,10 @@ type configuration struct {
 	} `json:"server"`
 }
 
+func (c *configuration) Password() []byte {
+	return []byte("my very long password")
+}
+
 func (c *configuration) CipherSuites() []uint16 {
 	ciphers := make([]uint16, 0)
 

@@ -215,11 +215,17 @@ func secretsCreateAction(req *http.Request, user *User, x csrf.CSRF, db *sqlx.Tx
 		return renderTemplate(400, "secrets/form", data)
 	}
 
+	encrypted, err := Encrypt([]byte(body))
+	if err != nil {
+		data.OtherError = "Could not encrypt secret: " + err.Error()
+		return renderTemplate(500, "secrets/form", data)
+	}
+
 	secret := &Secret{
 		Id:        -1,
 		Name:      name,
 		Slug:      validated,
-		Secret:    Encrypt([]byte(body)),
+		Secret:    encrypted,
 		CreatedBy: user.Id,
 		_db:       db,
 	}
@@ -294,7 +300,13 @@ func secretsUpdateAction(params martini.Params, req *http.Request, user *User, x
 	secret.UpdatedBy = &user.Id
 
 	if len(body) > 0 {
-		secret.Secret = Encrypt([]byte(body))
+		encrypted, err := Encrypt([]byte(body))
+		if err != nil {
+			data.OtherError = "Could not encrypt secret: " + err.Error()
+			return renderTemplate(500, "secrets/form", data)
+		}
+
+		secret.Secret = encrypted
 	}
 
 	err = secret.Save()
