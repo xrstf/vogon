@@ -14,11 +14,11 @@
 </div>
 
 <div class="row">
-	<div class="col-lg-10 col-lg-offset-1">
+	<div class="col-lg-8 col-lg-offset-2">
 		{{if $viewMode}}
-		<div class="panel panel-info">
+		<div class="panel panel-default">
 			<div class="panel-heading">
-				<i class="fa fa-edit"></i> View User
+				<i class="fa fa-edit"></i> User Details
 			</div>
 			<div class="panel-body form-horizontal">
 				<div class="form-group">
@@ -34,13 +34,20 @@
 						<p class="form-control-static" id="login">{{.LoginName}}</p>
 					</div>
 				</div>
+
+				<div class="form-group">
+					<label for="login" class="col-lg-2 control-label">Last Login:</label>
+					<div class="col-lg-8">
+						<p class="form-control-static">{{if .LastLoginAt}}{{time .LastLoginAt}}{{else}}(never){{end}}</p>
+					</div>
+				</div>
 			</div>
 		</div>
 		{{else}}
 		<form method="post" action="{{if .User}}/users/{{.User}}{{else}}/users{{end}}" role="form" class="form-horizontal">
-			<div class="panel panel-info">
+			<div class="panel panel-{{if .Deleted}}default{{else}}info{{end}}">
 				<div class="panel-heading">
-					<i class="fa fa-edit"></i> Edit User
+					<i class="fa fa-edit"></i> User Details
 				</div>
 				<div class="panel-body">
 					<div class="form-group{{if .NameError}} has-error{{end}}">
@@ -74,6 +81,15 @@
 							</p>
 						</div>
 					</div>
+
+					{{if .User}}
+					<div class="form-group">
+						<label class="col-lg-2 control-label">Last Login:</label>
+						<div class="col-lg-8">
+							<p class="form-control-static">{{if .LastLoginAt}}{{time .LastLoginAt}}{{else}}(never){{end}}</p>
+						</div>
+					</div>
+					{{end}}
 				</div>
 				<div class="panel-footer">
 					{{if .User}}

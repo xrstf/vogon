@@ -100,7 +100,7 @@
 
 <i class="fa fa-user"></i> <a href="/users/{{.CreatedBy}}">{{shorten $user 20}}</a>
 {{if eq .Action "user-login"}}
-	logged in from <em>{{.OriginIp}}</em> using <em title="{{.UserAgent}}">{{shorten .UserAgent 40}}</em>.
+	logged in from <em>{{.OriginIp}}</em> using {{if .UserAgent}}<em title="{{.UserAgent}}">{{shorten .UserAgent 40}}</em>{{else}} an <em>unidentified user agent</em>{{end}}.
 {{else if eq .Action "user-created"}}
 	{{$subject := .GetUser.Name}}
 	created <i class="fa fa-user"></i> <a href="/users/{{.User}}">{{shorten $subject 30}}</a>.</span>

@@ -33,16 +33,16 @@
 					</div>
 
 					<div class="form-group">
-						<label for="name" class="col-lg-2 control-label">Status:</label>
+						<label for="enabled" class="col-lg-2 control-label">Status:</label>
 						<div class="col-lg-6">
 							<div class="checkbox">
-								<label><input type="checkbox" value="1" name="enabled"{{if .Enabled}} checked{{end}}> This consumer shall be enabled.</label>
+								<label><input type="checkbox" id="enabled" value="1" name="enabled"{{if .Enabled}} checked{{end}}> This consumer shall be enabled.</label>
 							</div>
 						</div>
 					</div>
 
 					<div class="form-group{{if .NameError}} has-error{{end}}">
-						<label for="name" class="col-lg-2 control-label">Assigned Secrets:</label>
+						<label class="col-lg-2 control-label">Assigned Secrets:</label>
 						<div class="col-lg-8">
 							{{range .Secrets}}
 							<div class="checkbox">
