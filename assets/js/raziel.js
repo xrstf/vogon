@@ -60,4 +60,14 @@ jQuery(function($) {
 
 		updateAuthTypeForm();
 	}
+
+	$('#logout').on('click', function() {
+		var form = $('<form method="post" action="/logout"></form>');
+		var token = $('meta[name="csrf-token"]').attr('content');
+
+		form.append($('<input type="hidden" name="_csrf">').val(token));
+
+		$('body').append(form);
+		form.submit();
+	});
 });

@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-martini/martini"
 	"github.com/jmoiron/sqlx"
+	"github.com/martini-contrib/csrf"
 	"github.com/martini-contrib/sessionauth"
 	"github.com/martini-contrib/sessions"
 )
@@ -57,7 +58,14 @@ func loginAction(params martini.Params, session sessions.Session, req *http.Requ
 	return redirect(302, target)
 }
 
+func logoutAction(user *User, session sessions.Session) response {
+	sessionauth.Logout(session, user)
+
+	return redirect(302, "/")
+}
+
 func setupSessionCtrl(app *martini.ClassicMartini) {
 	app.Get("/login", loginFormAction)
 	app.Post("/login", loginAction)
+	app.Post("/logout", sessionauth.LoginRequired, csrf.Validate, logoutAction)
 }
