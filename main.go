@@ -166,6 +166,7 @@ func main() {
 
 	martini := &martini.ClassicMartini{m, r}
 	setupDashboardCtrl(martini)
+	setupProfileCtrl(martini)
 	setupSessionCtrl(martini)
 	setupSecretsCtrl(martini)
 	setupUsersCtrl(martini)

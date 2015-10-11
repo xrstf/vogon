@@ -258,11 +258,12 @@ func usersCreateAction(req *http.Request, user *User, x csrf.CSRF, db *sqlx.Tx) 
 		return renderTemplate(400, "users/form", data)
 	}
 
+	hashed := string(HashBcrypt(password))
 	newUser := &User{
 		Id:        -1,
 		Name:      name,
 		LoginName: validated,
-		Password:  &password,
+		Password:  &hashed,
 		_db:       db,
 	}
 
@@ -344,7 +345,8 @@ func usersUpdateAction(params martini.Params, req *http.Request, currentUser *Us
 	subject.LoginName = validated
 
 	if len(password) > 0 {
-		subject.Password = &password
+		hashed := string(HashBcrypt(password))
+		subject.Password = &hashed
 	}
 
 	err = subject.Save()

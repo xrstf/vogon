@@ -32,7 +32,7 @@ func loginAction(params martini.Params, session sessions.Session, req *http.Requ
 		return renderTemplate(403, "login", loginData{validated})
 	}
 
-	if *user.Password != password {
+	if !CompareBcrypt(*user.Password, password) {
 		return renderTemplate(403, "login", loginData{validated})
 	}
 

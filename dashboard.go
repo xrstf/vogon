@@ -10,11 +10,6 @@ import (
 	"github.com/martini-contrib/sessionauth"
 )
 
-type accessLogEntry struct {
-	Date   string
-	Origin string
-}
-
 type dashboardData struct {
 	layoutData
 
