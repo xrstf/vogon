@@ -68,7 +68,12 @@ func deliverSecretAction(params martini.Params, req *http.Request, db *sqlx.Tx) 
 	// finally load the secret with its body
 	secret = findSecret(secret.Id, true, db)
 
-	return newResponse(200, string(Decrypt(secret.Secret)))
+	decrypted, err := Decrypt(secret.Secret)
+	if err != nil {
+		return newResponse(500, "Nope.")
+	}
+
+	return newResponse(200, string(decrypted))
 }
 
 func setupDeliveryCtrl(app *martini.ClassicMartini) {

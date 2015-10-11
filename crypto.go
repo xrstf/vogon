@@ -5,12 +5,17 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/crypto/pbkdf2"
 )
+
+const saltLength = 8
+const nonceLength = 24
+const keyLength = 32
 
 func Encrypt(input []byte) ([]byte, error) {
 	// derive a new encryption key for this message
@@ -26,17 +31,41 @@ func Encrypt(input []byte) ([]byte, error) {
 	}
 
 	// seal the data in a nacl box; the box will have the kd salt and nonce prepended
-	box := make([]byte, 8+24)
+	box := make([]byte, saltLength+nonceLength)
 	copy(box, kdSalt[:])
-	copy(box[8:], nonce[:])
+	copy(box[saltLength:], nonce[:])
 
 	box = secretbox.Seal(box, input, nonce, encryptionKey)
 
 	return box, nil
 }
 
-func Decrypt(input []byte) []byte {
-	return input
+func Decrypt(input []byte) ([]byte, error) {
+	minLength := saltLength + nonceLength + secretbox.Overhead + 1
+
+	if len(input) < minLength {
+		return nil, errors.New(fmt.Sprintf("The ciphertext is too short (%d bytes) to be valid. It needs to be at least %d bytes.", len(input), minLength))
+	}
+
+	salt := new([saltLength]byte)
+	nonce := new([nonceLength]byte)
+
+	copy(salt[:], input[:saltLength])
+	copy(nonce[:], input[saltLength:(saltLength+nonceLength)])
+
+	encryptionKey, err := deriveKeyWithSalt(config.Password(), salt)
+	if err != nil {
+		return nil, err
+	}
+
+	box := input[(saltLength + nonceLength):]
+
+	plain, success := secretbox.Open(nil, box, nonce, encryptionKey)
+	if !success {
+		return nil, errors.New("Decrypting failed, probably due to a wrong password.")
+	}
+
+	return plain, nil
 }
 
 func HashBcrypt(str string) []byte {
@@ -52,23 +81,33 @@ func CompareBcrypt(hash string, password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) == nil
 }
 
-func deriveKey(password []byte) (*[32]byte, *[8]byte, error) {
+func deriveKey(password []byte) (*[keyLength]byte, *[saltLength]byte, error) {
 	// create the salt for key derivation
-	salt := new([8]byte)
+	salt := new([saltLength]byte)
+
 	_, err := rand.Reader.Read(salt[:])
 	if err != nil {
 		return nil, nil, errors.New("Could not gather sufficient random data to perform encryption: " + err.Error())
 	}
 
-	// run PBKDF2 (RFC 2898)
-	encryptionKey := new([32]byte)
-	copy(encryptionKey[:], pbkdf2.Key(password, salt[:], 8192, 32, sha256.New))
+	key, err := deriveKeyWithSalt(password, salt)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	return encryptionKey, salt, nil
+	return key, salt, nil
 }
 
-func createNonce() (*[24]byte, error) {
-	nonce := new([24]byte)
+func deriveKeyWithSalt(password []byte, salt *[saltLength]byte) (*[keyLength]byte, error) {
+	// create encryption key (32byte) from the password using PBKDF2 (RFC 2898)
+	key := new([keyLength]byte)
+	copy(key[:], pbkdf2.Key(password, salt[:], 8192, keyLength, sha256.New))
+
+	return key, nil
+}
+
+func createNonce() (*[nonceLength]byte, error) {
+	nonce := new([nonceLength]byte)
 	now := time.Now().UnixNano()
 
 	binary.BigEndian.PutUint64(nonce[:], uint64(now))
