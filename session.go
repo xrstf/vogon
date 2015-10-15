@@ -60,6 +60,8 @@ func NewSessionMiddleware(options cookieOptions) *SessionMiddleware {
 
 func (m *SessionMiddleware) Setup(martini *martini.Martini) {
 	martini.Use(m.ResolveSessionCookie)
+
+	go m.cleanup()
 }
 
 func (m *SessionMiddleware) ResolveSessionCookie(r *http.Request, response http.ResponseWriter, c martini.Context, db *sqlx.Tx) {
@@ -181,6 +183,20 @@ func (m *SessionMiddleware) EndSession(session *Session, response http.ResponseW
 
 func (m *SessionMiddleware) destroySession(session *Session) {
 	delete(m.sessions, session.ID)
+}
+
+func (m *SessionMiddleware) cleanup() {
+	for {
+		now := time.Now()
+
+		for _, sess := range m.sessions {
+			if now.After(sess.Expires) {
+				m.destroySession(sess)
+			}
+		}
+
+		<-time.After(1 * time.Minute)
+	}
 }
 
 func safeRandomString(length int) (string, error) {
