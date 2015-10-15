@@ -9,8 +9,6 @@ import (
 
 	"github.com/go-martini/martini"
 	"github.com/jmoiron/sqlx"
-	"github.com/martini-contrib/csrf"
-	"github.com/martini-contrib/sessionauth"
 	"github.com/speps/go-hashids"
 )
 
@@ -347,8 +345,8 @@ func (data *consumerFormData) serializeForm(req *http.Request) bool {
 	return okay
 }
 
-func consumersIndexAction(user *User, x csrf.CSRF, db *sqlx.Tx) response {
-	data := &consumerListData{NewLayoutData("Consumers", "consumers", user, x.GetToken()), make([]Consumer, 0)}
+func consumersIndexAction(user *User, session *Session, db *sqlx.Tx) response {
+	data := &consumerListData{NewLayoutData("Consumers", "consumers", user, session.CsrfToken), make([]Consumer, 0)}
 	lastSeen := "(SELECT a.`requested_at` FROM `access_log` a WHERE a.`consumer_id` = c.`id` ORDER BY `id` DESC LIMIT 1) AS `last_seen`"
 
 	// find consumers (do not even select the consumer itself, we don't need it)
@@ -364,8 +362,8 @@ func consumersIndexAction(user *User, x csrf.CSRF, db *sqlx.Tx) response {
 	return renderTemplate(200, "consumers/index", data)
 }
 
-func consumersAddAction(user *User, x csrf.CSRF, db *sqlx.Tx) response {
-	data := newConsumerFormData(NewLayoutData("Add Consumer", "consumers", user, x.GetToken()))
+func consumersAddAction(user *User, session *Session, db *sqlx.Tx) response {
+	data := newConsumerFormData(NewLayoutData("Add Consumer", "consumers", user, session.CsrfToken))
 	data.primeRestrictions()
 	data.primeSecrets(db)
 
@@ -375,8 +373,8 @@ func consumersAddAction(user *User, x csrf.CSRF, db *sqlx.Tx) response {
 	return renderTemplate(200, "consumers/form", data)
 }
 
-func consumersCreateAction(req *http.Request, user *User, x csrf.CSRF, db *sqlx.Tx) response {
-	data := newConsumerFormData(NewLayoutData("Add Consumer", "consumers", user, x.GetToken()))
+func consumersCreateAction(req *http.Request, user *User, session *Session, db *sqlx.Tx) response {
+	data := newConsumerFormData(NewLayoutData("Add Consumer", "consumers", user, session.CsrfToken))
 	data.primeRestrictions()
 	data.primeSecrets(db)
 
@@ -420,7 +418,7 @@ func consumersCreateAction(req *http.Request, user *User, x csrf.CSRF, db *sqlx.
 	return redirect(302, "/consumers")
 }
 
-func consumersEditAction(params martini.Params, user *User, x csrf.CSRF, db *sqlx.Tx) response {
+func consumersEditAction(params martini.Params, user *User, session *Session, db *sqlx.Tx) response {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		return renderError(400, "Invalid ID given.")
@@ -431,7 +429,7 @@ func consumersEditAction(params martini.Params, user *User, x csrf.CSRF, db *sql
 		return renderError(404, "Consumer could not be found.")
 	}
 
-	data := newConsumerFormData(NewLayoutData("Edit Consumer", "consumers", user, x.GetToken()))
+	data := newConsumerFormData(NewLayoutData("Edit Consumer", "consumers", user, session.CsrfToken))
 	data.primeRestrictions()
 	data.primeSecrets(db)
 	data.fromConsumer(consumer)
@@ -439,7 +437,7 @@ func consumersEditAction(params martini.Params, user *User, x csrf.CSRF, db *sql
 	return renderTemplate(200, "consumers/form", data)
 }
 
-func consumersUpdateAction(params martini.Params, req *http.Request, user *User, x csrf.CSRF, db *sqlx.Tx) response {
+func consumersUpdateAction(params martini.Params, req *http.Request, user *User, session *Session, db *sqlx.Tx) response {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		return renderError(400, "Invalid ID given.")
@@ -451,7 +449,7 @@ func consumersUpdateAction(params martini.Params, req *http.Request, user *User,
 	}
 
 	// initialize our data object
-	data := newConsumerFormData(NewLayoutData("Edit Consumer", "consumers", user, x.GetToken()))
+	data := newConsumerFormData(NewLayoutData("Edit Consumer", "consumers", user, session.CsrfToken))
 	data.primeRestrictions()
 	data.primeSecrets(db)
 	data.fromConsumer(consumer)
@@ -492,7 +490,7 @@ func consumersUpdateAction(params martini.Params, req *http.Request, user *User,
 	return redirect(302, "/consumers")
 }
 
-func consumersDeleteConfirmAction(params martini.Params, user *User, x csrf.CSRF, db *sqlx.Tx) response {
+func consumersDeleteConfirmAction(params martini.Params, user *User, session *Session, db *sqlx.Tx) response {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		return renderError(400, "Invalid ID given.")
@@ -503,13 +501,13 @@ func consumersDeleteConfirmAction(params martini.Params, user *User, x csrf.CSRF
 		return renderError(404, "Consumer could not be found.")
 	}
 
-	data := newConsumerFormData(NewLayoutData("Delete Consumer", "consumers", user, x.GetToken()))
+	data := newConsumerFormData(NewLayoutData("Delete Consumer", "consumers", user, session.CsrfToken))
 	data.fromConsumer(consumer)
 
 	return renderTemplate(200, "consumers/confirmation", data)
 }
 
-func consumersDeleteAction(params martini.Params, user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx) response {
+func consumersDeleteAction(params martini.Params, user *User, req *http.Request, session *Session, db *sqlx.Tx) response {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		return renderError(400, "Invalid ID given.")
@@ -520,7 +518,7 @@ func consumersDeleteAction(params martini.Params, user *User, req *http.Request,
 		return renderError(404, "Consumer could not be found.")
 	}
 
-	data := newConsumerFormData(NewLayoutData("Delete Consumer", "consumers", user, x.GetToken()))
+	data := newConsumerFormData(NewLayoutData("Delete Consumer", "consumers", user, session.CsrfToken))
 	data.fromConsumer(consumer)
 
 	err = consumer.Delete()
@@ -548,7 +546,7 @@ func newConsumerUrlsData(layout layoutData) consumerUrlsData {
 	return data
 }
 
-func consumersUrlsAction(params martini.Params, user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx) response {
+func consumersUrlsAction(params martini.Params, user *User, req *http.Request, session *Session, db *sqlx.Tx) response {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		return renderError(400, "Invalid ID given.")
@@ -559,7 +557,7 @@ func consumersUrlsAction(params martini.Params, user *User, req *http.Request, x
 		return renderError(404, "Consumer could not be found.")
 	}
 
-	data := newConsumerUrlsData(NewLayoutData("Consumer URLs", "consumers", user, x.GetToken()))
+	data := newConsumerUrlsData(NewLayoutData("Consumer URLs", "consumers", user, session.CsrfToken))
 	data.Consumer = consumer
 	data.Secrets = consumer.GetSecrets(false)
 
@@ -599,13 +597,13 @@ func setupConsumersCtrl(app *martini.ClassicMartini) {
 	app.Group("/consumers", func(r martini.Router) {
 		app.Get("", consumersIndexAction)
 		app.Get("/add", consumersAddAction)
-		app.Post("", csrf.Validate, consumersCreateAction)
+		app.Post("", sessions.RequireCsrfToken, consumersCreateAction)
 		app.Get("/:id", consumersEditAction)
-		app.Put("/:id", csrf.Validate, consumersUpdateAction)
-		app.Delete("/:id", csrf.Validate, consumersDeleteAction)
+		app.Put("/:id", sessions.RequireCsrfToken, consumersUpdateAction)
+		app.Delete("/:id", sessions.RequireCsrfToken, consumersDeleteAction)
 		app.Get("/:id/delete", consumersDeleteConfirmAction)
 		app.Get("/:id/urls", consumersUrlsAction)
-	}, sessionauth.LoginRequired)
+	}, sessions.RequireLogin)
 
 	// public
 	app.Get("/info/:consumer/:token", consumerInfoAction)

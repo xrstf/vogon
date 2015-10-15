@@ -7,8 +7,6 @@ import (
 
 	"github.com/go-martini/martini"
 	"github.com/jmoiron/sqlx"
-	"github.com/martini-contrib/csrf"
-	"github.com/martini-contrib/sessionauth"
 )
 
 type Secret struct {
@@ -172,20 +170,20 @@ func (data *secretFormData) fromSecret(s *Secret) {
 // HTTP Handlers
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func secretsIndexAction(user *User, x csrf.CSRF, db *sqlx.Tx) response {
-	data := &secretListData{NewLayoutData("Secrets", "secrets", user, x.GetToken()), findAllSecrets(false, db)}
+func secretsIndexAction(user *User, session *Session, db *sqlx.Tx) response {
+	data := &secretListData{NewLayoutData("Secrets", "secrets", user, session.CsrfToken), findAllSecrets(false, db)}
 
 	return renderTemplate(200, "secrets/index", data)
 }
 
-func secretsAddAction(user *User, x csrf.CSRF) response {
-	data := &secretFormData{layoutData: NewLayoutData("Add Secret", "secrets", user, x.GetToken())}
+func secretsAddAction(user *User, session *Session) response {
+	data := &secretFormData{layoutData: NewLayoutData("Add Secret", "secrets", user, session.CsrfToken)}
 
 	return renderTemplate(200, "secrets/form", data)
 }
 
-func secretsCreateAction(req *http.Request, user *User, x csrf.CSRF, db *sqlx.Tx) response {
-	data := &secretFormData{layoutData: NewLayoutData("Add Secret", "secrets", user, x.GetToken())}
+func secretsCreateAction(req *http.Request, user *User, session *Session, db *sqlx.Tx) response {
+	data := &secretFormData{layoutData: NewLayoutData("Add Secret", "secrets", user, session.CsrfToken)}
 	name := strings.TrimSpace(req.FormValue("name"))
 	slug := strings.TrimSpace(req.FormValue("slug"))
 	body := strings.TrimSpace(req.FormValue("body"))
@@ -241,7 +239,7 @@ func secretsCreateAction(req *http.Request, user *User, x csrf.CSRF, db *sqlx.Tx
 	return redirect(302, "/secrets")
 }
 
-func secretsEditAction(params martini.Params, user *User, x csrf.CSRF, db *sqlx.Tx) response {
+func secretsEditAction(params martini.Params, user *User, session *Session, db *sqlx.Tx) response {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		return renderError(400, "Invalid ID given.")
@@ -252,13 +250,13 @@ func secretsEditAction(params martini.Params, user *User, x csrf.CSRF, db *sqlx.
 		return renderError(404, "Secret could not be found.")
 	}
 
-	data := &secretFormData{layoutData: NewLayoutData("Edit Secret", "secrets", user, x.GetToken())}
+	data := &secretFormData{layoutData: NewLayoutData("Edit Secret", "secrets", user, session.CsrfToken)}
 	data.fromSecret(secret)
 
 	return renderTemplate(200, "secrets/form", data)
 }
 
-func secretsUpdateAction(params martini.Params, req *http.Request, user *User, x csrf.CSRF, db *sqlx.Tx) response {
+func secretsUpdateAction(params martini.Params, req *http.Request, user *User, session *Session, db *sqlx.Tx) response {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		return renderError(400, "Invalid ID given.")
@@ -269,7 +267,7 @@ func secretsUpdateAction(params martini.Params, req *http.Request, user *User, x
 		return renderError(404, "Secret could not be found.")
 	}
 
-	data := &secretFormData{layoutData: NewLayoutData("Edit Secret", "secrets", user, x.GetToken())}
+	data := &secretFormData{layoutData: NewLayoutData("Edit Secret", "secrets", user, session.CsrfToken)}
 	name := strings.TrimSpace(req.FormValue("name"))
 	slug := strings.TrimSpace(req.FormValue("slug"))
 	body := strings.TrimSpace(req.FormValue("body"))
@@ -320,7 +318,7 @@ func secretsUpdateAction(params martini.Params, req *http.Request, user *User, x
 	return redirect(302, "/secrets")
 }
 
-func secretsDeleteConfirmAction(params martini.Params, user *User, x csrf.CSRF, db *sqlx.Tx) response {
+func secretsDeleteConfirmAction(params martini.Params, user *User, session *Session, db *sqlx.Tx) response {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		return renderError(400, "Invalid ID given.")
@@ -331,13 +329,13 @@ func secretsDeleteConfirmAction(params martini.Params, user *User, x csrf.CSRF, 
 		return renderError(404, "Secret could not be found.")
 	}
 
-	data := &secretFormData{layoutData: NewLayoutData("Delete Secret", "secrets", user, x.GetToken())}
+	data := &secretFormData{layoutData: NewLayoutData("Delete Secret", "secrets", user, session.CsrfToken)}
 	data.fromSecret(secret)
 
 	return renderTemplate(200, "secrets/confirmation", data)
 }
 
-func secretsDeleteAction(params martini.Params, user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx) response {
+func secretsDeleteAction(params martini.Params, user *User, req *http.Request, session *Session, db *sqlx.Tx) response {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		return renderError(400, "Invalid ID given.")
@@ -348,7 +346,7 @@ func secretsDeleteAction(params martini.Params, user *User, req *http.Request, x
 		return renderError(404, "Secret could not be found.")
 	}
 
-	data := &secretFormData{layoutData: NewLayoutData("Delete Secret", "secrets", user, x.GetToken())}
+	data := &secretFormData{layoutData: NewLayoutData("Delete Secret", "secrets", user, session.CsrfToken)}
 	data.fromSecret(secret)
 
 	err = secret.Delete()
@@ -366,10 +364,10 @@ func setupSecretsCtrl(app *martini.ClassicMartini) {
 	app.Group("/secrets", func(r martini.Router) {
 		app.Get("", secretsIndexAction)
 		app.Get("/add", secretsAddAction)
-		app.Post("", csrf.Validate, secretsCreateAction)
+		app.Post("", sessions.RequireCsrfToken, secretsCreateAction)
 		app.Get("/:id", secretsEditAction)
-		app.Put("/:id", csrf.Validate, secretsUpdateAction)
-		app.Delete("/:id", csrf.Validate, secretsDeleteAction)
+		app.Put("/:id", sessions.RequireCsrfToken, secretsUpdateAction)
+		app.Delete("/:id", sessions.RequireCsrfToken, secretsDeleteAction)
 		app.Get("/:id/delete", secretsDeleteConfirmAction)
-	}, sessionauth.LoginRequired)
+	}, sessions.RequireLogin)
 }

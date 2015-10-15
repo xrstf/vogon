@@ -6,8 +6,6 @@ import (
 
 	"github.com/go-martini/martini"
 	"github.com/jmoiron/sqlx"
-	"github.com/martini-contrib/csrf"
-	"github.com/martini-contrib/sessionauth"
 )
 
 type dashboardData struct {
@@ -21,7 +19,7 @@ type dashboardData struct {
 	AccessLog  []AccessLogEntry
 }
 
-func dashboardAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx) response {
+func dashboardAction(user *User, req *http.Request, session *Session, db *sqlx.Tx) response {
 	secrets := countResultSet{}
 	db.Get(&secrets, "SELECT COUNT(*) AS `num` FROM `secret`")
 
@@ -41,7 +39,7 @@ func dashboardAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx) re
 	accessLog := NewAccessLog(db)
 
 	data := &dashboardData{
-		layoutData: NewLayoutData("Dashboard", "dashboard", user, x.GetToken()),
+		layoutData: NewLayoutData("Dashboard", "dashboard", user, session.CsrfToken),
 		Secrets:    secrets.Count,
 		Consumers:  consumers.Count,
 		Users:      users.Count,
@@ -54,5 +52,5 @@ func dashboardAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx) re
 }
 
 func setupDashboardCtrl(app *martini.ClassicMartini) {
-	app.Get("/", sessionauth.LoginRequired, dashboardAction)
+	app.Get("/", sessions.RequireLogin, dashboardAction)
 }

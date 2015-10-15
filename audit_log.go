@@ -10,8 +10,6 @@ import (
 
 	"github.com/go-martini/martini"
 	"github.com/jmoiron/sqlx"
-	"github.com/martini-contrib/csrf"
-	"github.com/martini-contrib/sessionauth"
 	"github.com/xrstf/pager"
 )
 
@@ -352,7 +350,7 @@ func (a *auditLogListData) HasAction(action string) bool {
 	return ok
 }
 
-func auditLogIndexAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx) response {
+func auditLogIndexAction(user *User, req *http.Request, session *Session, db *sqlx.Tx) response {
 	selectedSecrets := getIntList(req, "secrets[]")
 	selectedConsumers := getIntList(req, "consumers[]")
 	selectedUsers := getIntList(req, "users[]")
@@ -377,7 +375,7 @@ func auditLogIndexAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx
 	total := auditLog.Count(selectedSecrets, selectedConsumers, selectedUsers, selectedCreators, selectedActions)
 
 	pgr := pager.NewBasicPager(page, total, limit)
-	data := &auditLogListData{layoutData: NewLayoutData("Audit Log", "auditlog", user, x.GetToken())}
+	data := &auditLogListData{layoutData: NewLayoutData("Audit Log", "auditlog", user, session.CsrfToken)}
 
 	data.Entries = entries
 	data.Pager = pgr
@@ -434,5 +432,5 @@ func auditLogIndexAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx
 func setupAuditLogCtrl(app *martini.ClassicMartini) {
 	app.Group("/auditlog", func(r martini.Router) {
 		app.Get("", auditLogIndexAction)
-	}, sessionauth.LoginRequired)
+	}, sessions.RequireLogin)
 }

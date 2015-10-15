@@ -6,8 +6,6 @@ import (
 
 	"github.com/go-martini/martini"
 	"github.com/jmoiron/sqlx"
-	"github.com/martini-contrib/csrf"
-	"github.com/martini-contrib/sessionauth"
 )
 
 type profileData struct {
@@ -21,9 +19,9 @@ type profileData struct {
 	OtherError    string
 }
 
-func profileAction(user *User, x csrf.CSRF) response {
+func profileAction(user *User, session *Session) response {
 	data := &profileData{
-		layoutData: NewLayoutData("Profile", "profile", user, x.GetToken()),
+		layoutData: NewLayoutData("Profile", "profile", user, session.CsrfToken),
 		Name:       user.Name,
 		LoginName:  user.LoginName,
 	}
@@ -31,9 +29,9 @@ func profileAction(user *User, x csrf.CSRF) response {
 	return renderTemplate(200, "profile/form", data)
 }
 
-func updateProfileAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx) response {
+func updateProfileAction(user *User, req *http.Request, session *Session, db *sqlx.Tx) response {
 	data := &profileData{
-		layoutData: NewLayoutData("Profile", "profile", user, x.GetToken()),
+		layoutData: NewLayoutData("Profile", "profile", user, session.CsrfToken),
 		Name:       user.Name,
 		LoginName:  user.LoginName,
 	}
@@ -76,9 +74,9 @@ func updateProfileAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx
 	return redirect(302, "/profile")
 }
 
-func changePasswordAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx) response {
+func changePasswordAction(user *User, req *http.Request, session *Session, db *sqlx.Tx) response {
 	data := &profileData{
-		layoutData: NewLayoutData("Profile", "profile", user, x.GetToken()),
+		layoutData: NewLayoutData("Profile", "profile", user, session.CsrfToken),
 		Name:       user.Name,
 		LoginName:  user.LoginName,
 	}
@@ -111,7 +109,7 @@ func changePasswordAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.T
 }
 
 func setupProfileCtrl(app *martini.ClassicMartini) {
-	app.Get("/profile", sessionauth.LoginRequired, profileAction)
-	app.Put("/profile", sessionauth.LoginRequired, csrf.Validate, updateProfileAction)
-	app.Put("/profile/password", sessionauth.LoginRequired, csrf.Validate, changePasswordAction)
+	app.Get("/profile", sessions.RequireLogin, profileAction)
+	app.Put("/profile", sessions.RequireLogin, sessions.RequireCsrfToken, updateProfileAction)
+	app.Put("/profile/password", sessions.RequireLogin, sessions.RequireCsrfToken, changePasswordAction)
 }

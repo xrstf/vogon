@@ -7,8 +7,6 @@ import (
 
 	"github.com/go-martini/martini"
 	"github.com/jmoiron/sqlx"
-	"github.com/martini-contrib/csrf"
-	"github.com/martini-contrib/sessionauth"
 )
 
 type User struct {
@@ -208,8 +206,8 @@ func (data *userFormData) fromUser(u *User) {
 	}
 }
 
-func usersIndexAction(user *User, x csrf.CSRF, db *sqlx.Tx) response {
-	data := &userListData{NewLayoutData("Users", "users", user, x.GetToken()), make([]User, 0)}
+func usersIndexAction(user *User, session *Session, db *sqlx.Tx) response {
+	data := &userListData{NewLayoutData("Users", "users", user, session.CsrfToken), make([]User, 0)}
 
 	// find users (do not even select the user itself, we don't need it)
 	db.Select(&data.Users, "SELECT `id`, `login`, `name`, `last_login_at`, `deleted` FROM `user` WHERE `deleted` IS NULL ORDER BY `name`")
@@ -221,14 +219,14 @@ func usersIndexAction(user *User, x csrf.CSRF, db *sqlx.Tx) response {
 	return renderTemplate(200, "users/index", data)
 }
 
-func usersAddAction(user *User, x csrf.CSRF) response {
-	data := &userFormData{layoutData: NewLayoutData("Add User", "users", user, x.GetToken())}
+func usersAddAction(user *User, session *Session) response {
+	data := &userFormData{layoutData: NewLayoutData("Add User", "users", user, session.CsrfToken)}
 
 	return renderTemplate(200, "users/form", data)
 }
 
-func usersCreateAction(req *http.Request, user *User, x csrf.CSRF, db *sqlx.Tx) response {
-	data := &userFormData{layoutData: NewLayoutData("Add User", "users", user, x.GetToken())}
+func usersCreateAction(req *http.Request, user *User, session *Session, db *sqlx.Tx) response {
+	data := &userFormData{layoutData: NewLayoutData("Add User", "users", user, session.CsrfToken)}
 	name := strings.TrimSpace(req.FormValue("name"))
 	login := strings.TrimSpace(req.FormValue("login"))
 	password := strings.TrimSpace(req.FormValue("password"))
@@ -278,7 +276,7 @@ func usersCreateAction(req *http.Request, user *User, x csrf.CSRF, db *sqlx.Tx) 
 	return redirect(302, "/users")
 }
 
-func usersEditAction(params martini.Params, currentUser *User, x csrf.CSRF, db *sqlx.Tx) response {
+func usersEditAction(params martini.Params, currentUser *User, session *Session, db *sqlx.Tx) response {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		return renderError(400, "Invalid ID given.")
@@ -289,13 +287,13 @@ func usersEditAction(params martini.Params, currentUser *User, x csrf.CSRF, db *
 		return renderError(404, "User could not be found.")
 	}
 
-	data := &userFormData{layoutData: NewLayoutData("Edit User", "users", currentUser, x.GetToken())}
+	data := &userFormData{layoutData: NewLayoutData("Edit User", "users", currentUser, session.CsrfToken)}
 	data.fromUser(user)
 
 	return renderTemplate(200, "users/form", data)
 }
 
-func usersUpdateAction(params martini.Params, req *http.Request, currentUser *User, x csrf.CSRF, db *sqlx.Tx) response {
+func usersUpdateAction(params martini.Params, req *http.Request, currentUser *User, session *Session, db *sqlx.Tx) response {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		return renderError(400, "Invalid ID given.")
@@ -310,7 +308,7 @@ func usersUpdateAction(params martini.Params, req *http.Request, currentUser *Us
 		return renderError(403, "You cannot edit yourself.")
 	}
 
-	data := &userFormData{layoutData: NewLayoutData("Edit User", "users", currentUser, x.GetToken())}
+	data := &userFormData{layoutData: NewLayoutData("Edit User", "users", currentUser, session.CsrfToken)}
 	name := strings.TrimSpace(req.FormValue("name"))
 	login := strings.TrimSpace(req.FormValue("login"))
 	password := strings.TrimSpace(req.FormValue("password"))
@@ -360,7 +358,7 @@ func usersUpdateAction(params martini.Params, req *http.Request, currentUser *Us
 	return redirect(302, "/users")
 }
 
-func usersDeleteConfirmAction(params martini.Params, current *User, x csrf.CSRF, db *sqlx.Tx) response {
+func usersDeleteConfirmAction(params martini.Params, current *User, session *Session, db *sqlx.Tx) response {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		return renderError(400, "Invalid ID given.")
@@ -379,13 +377,13 @@ func usersDeleteConfirmAction(params martini.Params, current *User, x csrf.CSRF,
 		return renderError(409, "This user has already been deleted. Show some mercy.")
 	}
 
-	data := &userFormData{layoutData: NewLayoutData("Delete User", "users", current, x.GetToken())}
+	data := &userFormData{layoutData: NewLayoutData("Delete User", "users", current, session.CsrfToken)}
 	data.fromUser(subject)
 
 	return renderTemplate(200, "users/confirmation", data)
 }
 
-func usersDeleteAction(params martini.Params, current *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx) response {
+func usersDeleteAction(params martini.Params, current *User, req *http.Request, session *Session, db *sqlx.Tx) response {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		return renderError(400, "Invalid ID given.")
@@ -404,7 +402,7 @@ func usersDeleteAction(params martini.Params, current *User, req *http.Request, 
 		return renderError(409, "This user has already been deleted. Show some mercy.")
 	}
 
-	data := &userFormData{layoutData: NewLayoutData("Delete User", "users", current, x.GetToken())}
+	data := &userFormData{layoutData: NewLayoutData("Delete User", "users", current, session.CsrfToken)}
 	data.fromUser(subject)
 
 	err = subject.Delete()
@@ -422,10 +420,10 @@ func setupUsersCtrl(app *martini.ClassicMartini) {
 	app.Group("/users", func(r martini.Router) {
 		app.Get("", usersIndexAction)
 		app.Get("/add", usersAddAction)
-		app.Post("", csrf.Validate, usersCreateAction)
+		app.Post("", sessions.RequireCsrfToken, usersCreateAction)
 		app.Get("/:id", usersEditAction)
-		app.Put("/:id", csrf.Validate, usersUpdateAction)
-		app.Delete("/:id", csrf.Validate, usersDeleteAction)
+		app.Put("/:id", sessions.RequireCsrfToken, usersUpdateAction)
+		app.Delete("/:id", sessions.RequireCsrfToken, usersDeleteAction)
 		app.Get("/:id/delete", usersDeleteConfirmAction)
-	}, sessionauth.LoginRequired)
+	}, sessions.RequireLogin)
 }

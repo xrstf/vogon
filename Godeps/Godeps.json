@@ -3,27 +3,22 @@
 	"GoVersion": "go1.5",
 	"Deps": [
 		{
-			"ImportPath": "code.google.com/p/xsrftoken",
-			"Comment": "null-4",
-			"Rev": "bd5a620fff6e6167cccc9291a8d079402428a17a"
+			"ImportPath": "github.com/alecthomas/kingpin",
+			"Comment": "v2.1.0-2-gaedd543",
+			"Rev": "aedd5430ecd39ba1396fee0c00308b494c552b1e"
 		},
 		{
-			"ImportPath": "github.com/boj/redistore",
-			"Comment": "v1-9-g9c0e6ba",
-			"Rev": "9c0e6bab4dd444285424f189b8fb0cb03f653242"
+			"ImportPath": "github.com/alecthomas/template",
+			"Rev": "b867cc6ab45cece8143cfcc6fc9c77cf3f2c23c0"
+		},
+		{
+			"ImportPath": "github.com/alecthomas/units",
+			"Rev": "6b4e7dc5e3143b85ea77909c72caf89416fc2915"
 		},
 		{
 			"ImportPath": "github.com/codegangsta/inject",
 			"Comment": "v1.0-rc1-10-g33e0aa1",
 			"Rev": "33e0aa1cb7c019ccc3fbe049a8262a6403d30504"
-		},
-		{
-			"ImportPath": "github.com/garyburd/redigo/internal",
-			"Rev": "9d4db5d1dbeff473d50e1bb82f5405c8cca0f0ac"
-		},
-		{
-			"ImportPath": "github.com/garyburd/redigo/redis",
-			"Rev": "9d4db5d1dbeff473d50e1bb82f5405c8cca0f0ac"
 		},
 		{
 			"ImportPath": "github.com/go-martini/martini",
@@ -36,25 +31,9 @@
 			"Rev": "a197e5d40516f2e9f74dcee085a5f2d4604e94df"
 		},
 		{
-			"ImportPath": "github.com/gorilla/context",
-			"Rev": "1c83b3eabd45b6d76072b66b746c20815fb2872d"
-		},
-		{
-			"ImportPath": "github.com/gorilla/securecookie",
-			"Rev": "e95799a481bbcc3d01c2ad5178524cb8bec9f370"
-		},
-		{
-			"ImportPath": "github.com/gorilla/sessions",
-			"Rev": "b6bcae186ac3099dba8fafce125dc930393f1e5e"
-		},
-		{
 			"ImportPath": "github.com/jmoiron/sqlx",
 			"Comment": "sqlx-v1.1-44-gae682dc",
 			"Rev": "ae682dc5c71d087ef97d506ec543320fdd7b0ff1"
-		},
-		{
-			"ImportPath": "github.com/martini-contrib/csrf",
-			"Rev": "b016a25855e9ed4604a5e59b818342f2b8883f93"
 		},
 		{
 			"ImportPath": "github.com/martini-contrib/gzip",
@@ -65,20 +44,16 @@
 			"Rev": "905dacde5b323aeca81a41d68a7b60c0cdeef7a9"
 		},
 		{
-			"ImportPath": "github.com/martini-contrib/render",
-			"Rev": "ec18f8345a1181146728238980606fb1d6f40e8c"
-		},
-		{
-			"ImportPath": "github.com/martini-contrib/sessionauth",
-			"Rev": "3c15d8cae6c39a8feb3d3f72750084bd50bd52cc"
-		},
-		{
-			"ImportPath": "github.com/martini-contrib/sessions",
-			"Rev": "fa13114fbcf036dff8185d728651d85fcef772db"
-		},
-		{
 			"ImportPath": "github.com/oxtoacart/bpool",
 			"Rev": "4e1c5567d7c2dd59fa4c7c83d34c2f3528b025d6"
+		},
+		{
+			"ImportPath": "github.com/speps/go-hashids",
+			"Rev": "aab5b5b2ddd2ae9e35b8aca91e163b734e2d6be1"
+		},
+		{
+			"ImportPath": "github.com/xrstf/boxer",
+			"Rev": "568d9e70a5cbb327c1aa7b6e6aac7b12814cc480"
 		},
 		{
 			"ImportPath": "github.com/xrstf/pager",
@@ -90,6 +65,26 @@
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/blowfish",
+			"Rev": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/nacl/secretbox",
+			"Rev": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/pbkdf2",
+			"Rev": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/poly1305",
+			"Rev": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/salsa20/salsa",
+			"Rev": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/scrypt",
 			"Rev": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec"
 		}
 	]

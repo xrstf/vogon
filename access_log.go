@@ -11,8 +11,6 @@ import (
 
 	"github.com/go-martini/martini"
 	"github.com/jmoiron/sqlx"
-	"github.com/martini-contrib/csrf"
-	"github.com/martini-contrib/sessionauth"
 	"github.com/xrstf/pager"
 )
 
@@ -215,7 +213,7 @@ func (a *accessLogListData) HasStatus(status int) bool {
 	return ok
 }
 
-func accessLogIndexAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.Tx) response {
+func accessLogIndexAction(user *User, req *http.Request, session *Session, db *sqlx.Tx) response {
 	selectedSecrets := getIntList(req, "secrets[]")
 	selectedConsumers := getIntList(req, "consumers[]")
 	selectedStates := getIntList(req, "status[]")
@@ -238,7 +236,7 @@ func accessLogIndexAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.T
 	total := accessLog.Count(selectedSecrets, selectedConsumers, selectedStates)
 
 	pgr := pager.NewBasicPager(page, total, limit)
-	data := &accessLogListData{layoutData: NewLayoutData("Access Log", "accesslog", user, x.GetToken())}
+	data := &accessLogListData{layoutData: NewLayoutData("Access Log", "accesslog", user, session.CsrfToken)}
 
 	data.Entries = entries
 	data.Pager = pgr
@@ -274,5 +272,5 @@ func accessLogIndexAction(user *User, req *http.Request, x csrf.CSRF, db *sqlx.T
 func setupAccessLogCtrl(app *martini.ClassicMartini) {
 	app.Group("/accesslog", func(r martini.Router) {
 		app.Get("", accessLogIndexAction)
-	}, sessionauth.LoginRequired)
+	}, sessions.RequireLogin)
 }

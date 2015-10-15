@@ -1,71 +1,195 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"net/http"
-	"strings"
+	"time"
 
 	"github.com/go-martini/martini"
 	"github.com/jmoiron/sqlx"
-	"github.com/martini-contrib/csrf"
-	"github.com/martini-contrib/sessionauth"
-	"github.com/martini-contrib/sessions"
 )
 
-type loginData struct {
-	LoginName string
+type cookieOptions struct {
+	Name     string
+	MaxAge   time.Duration
+	HttpOnly bool
+	Secure   bool
 }
 
-func loginFormAction() response {
-	return renderTemplate(200, "login", loginData{""})
+type Session struct {
+	ID        string
+	User      int
+	CsrfToken string
+	Flashes   []string
+	Expires   time.Time
 }
 
-func loginAction(params martini.Params, session sessions.Session, req *http.Request, db *sqlx.Tx) response {
-	login := strings.TrimSpace(req.FormValue("login"))
-	password := strings.TrimSpace(req.FormValue("password"))
+func (s *Session) WriteCookie(options cookieOptions, response http.ResponseWriter) {
+	cookie := http.Cookie{
+		Name:     options.Name,
+		Value:    s.ID,
+		Expires:  time.Now().Add(options.MaxAge),
+		HttpOnly: options.HttpOnly,
+		Secure:   options.Secure,
+	}
 
-	validated, err := validateSafeString(login, "login")
+	response.Header().Set("Set-Cookie", cookie.String())
+}
+
+func (s *Session) DeleteCookie(options cookieOptions, response http.ResponseWriter) {
+	cookie := http.Cookie{
+		Name:   options.Name,
+		Value:  "-",
+		MaxAge: -1,
+	}
+
+	response.Header().Set("Set-Cookie", cookie.String())
+}
+
+type sessionMap map[string]*Session
+
+type SessionMiddleware struct {
+	sessions sessionMap
+	options  cookieOptions
+}
+
+func NewSessionMiddleware(options cookieOptions) *SessionMiddleware {
+	return &SessionMiddleware{make(sessionMap), options}
+}
+
+func (m *SessionMiddleware) Setup(martini *martini.Martini) {
+	martini.Use(m.ResolveSessionCookie)
+}
+
+func (m *SessionMiddleware) ResolveSessionCookie(r *http.Request, response http.ResponseWriter, c martini.Context, db *sqlx.Tx) {
+	// find session cookie
+	cookie, err := r.Cookie(m.options.Name)
+	valid := false
+
+	var sess *Session
+	var user *User
+
+	if err == nil {
+		clientID := cookie.Value
+		now := time.Now()
+
+		// find session
+		var okay bool
+		sess, okay = m.sessions[clientID]
+
+		if okay == true {
+			if now.After(sess.Expires) { // session expired
+				m.destroySession(sess)
+			} else {
+				// find associated user and check if they're deleted
+				user = findUser(sess.User, false, db)
+				valid = user != nil && user.Deleted == nil
+
+				if valid {
+					sess.Expires = now.Add(m.options.MaxAge)
+
+					// refresh the cookie
+					sess.WriteCookie(m.options, response)
+				} else {
+					m.destroySession(sess)
+				}
+			}
+		}
+	}
+
+	if !valid {
+		sess = &Session{"", 0, "", make([]string, 0), time.Now()}
+		user = &User{}
+	}
+
+	c.Map(user)
+	c.Map(sess)
+	c.Map(m)
+}
+
+func (m *SessionMiddleware) RequireLogin(user *User, req *http.Request, res http.ResponseWriter) {
+	if user.Id <= 0 || user.Deleted != nil {
+		http.Redirect(res, req, "/login", 302)
+	}
+}
+
+func (m *SessionMiddleware) RequireCsrfToken(session *Session, req *http.Request, res http.ResponseWriter) {
+	if session == nil {
+		http.Error(res, "Nope.", http.StatusUnauthorized)
+		return
+	}
+
+	token := req.FormValue("_csrf")
+	if token == "" {
+		http.Error(res, "Nope.", http.StatusBadRequest)
+		return
+	}
+
+	if token != session.CsrfToken {
+		http.Error(res, "Nope.", http.StatusForbidden)
+		return
+	}
+}
+
+func (m *SessionMiddleware) StartSession(user *User, response http.ResponseWriter) (*Session, error) {
+	session, err := m.newSession(user)
 	if err != nil {
-		return renderTemplate(403, "login", loginData{""})
+		return nil, err
 	}
 
-	user := findUserByLogin(login, true, db)
-	if user == nil || user.Deleted != nil {
-		return renderTemplate(403, "login", loginData{validated})
-	}
+	session.WriteCookie(m.options, response)
 
-	if !CompareBcrypt(*user.Password, password) {
-		return renderTemplate(403, "login", loginData{validated})
-	}
-
-	NewAuditLog(db, req).LogLogin(user.Id)
-
-	err = sessionauth.UpdateUser(session, user)
-	if err != nil {
-		panic(err)
-	}
-
-	err = user.TouchOnLogin()
-	if err != nil {
-		panic(err)
-	}
-
-	target := req.URL.Query().Get(sessionauth.RedirectParam)
-
-	if len(target) == 0 {
-		target = "/"
-	}
-
-	return redirect(302, target)
+	return session, nil
 }
 
-func logoutAction(user *User, session sessions.Session) response {
-	sessionauth.Logout(session, user)
+func (m *SessionMiddleware) newSession(user *User) (*Session, error) {
+	expires := time.Now().Add(m.options.MaxAge)
+	sess := Session{"", 0, "", make([]string, 0), expires}
 
-	return redirect(302, "/")
+	if user != nil {
+		sess.User = user.Id
+	}
+
+	// create csrf token
+	id, err := safeRandomString(64)
+	if err != nil {
+		return nil, err
+	}
+
+	sess.CsrfToken = id
+
+	// create session id
+	id, err = safeRandomString(64)
+	if err != nil {
+		return nil, err
+	}
+
+	sess.ID = id
+
+	m.sessions[id] = &sess
+
+	return &sess, nil
 }
 
-func setupSessionCtrl(app *martini.ClassicMartini) {
-	app.Get("/login", loginFormAction)
-	app.Post("/login", loginAction)
-	app.Post("/logout", sessionauth.LoginRequired, csrf.Validate, logoutAction)
+func (m *SessionMiddleware) EndSession(session *Session, response http.ResponseWriter) (*Session, error) {
+	m.destroySession(session)
+	session.DeleteCookie(m.options, response)
+
+	return session, nil
+}
+
+func (m *SessionMiddleware) destroySession(session *Session) {
+	delete(m.sessions, session.ID)
+}
+
+func safeRandomString(length int) (string, error) {
+	str := make([]byte, length)
+
+	_, err := rand.Read(str)
+	if err != nil {
+		return "", err
+	}
+
+	return base64.RawURLEncoding.EncodeToString(str), nil
 }
