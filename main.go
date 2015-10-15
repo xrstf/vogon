@@ -15,6 +15,8 @@ import (
 	"github.com/martini-contrib/method"
 )
 
+const TestString = "Umse ♪"
+
 var templateManager *TemplateManager
 var restrictionHandlers map[string]RestrictionHandler
 var config *configuration
@@ -40,15 +42,15 @@ func main() {
 		kingpin.FatalUsage(err.Error())
 	}
 
-	// init templates
-	templateManager = NewTemplateManager("templates")
-
 	// connect to database
 	database, err := sqlx.Connect("mysql", config.Database.Source)
 	if err != nil {
 		kingpin.FatalUsage(err.Error())
 	}
 
+	validateMasterPassword(database)
+
+	// init restriction handlers
 	restrictionHandlers = make(map[string]RestrictionHandler)
 	addRestrictionHandler(ApiKeyRestriction{})
 	addRestrictionHandler(TlsCertRestriction{})
@@ -58,6 +60,9 @@ func main() {
 	addRestrictionHandler(FileRestriction{})
 	addRestrictionHandler(HitLimitRestriction{})
 	addRestrictionHandler(ThrottleRestriction{})
+
+	// init templates
+	templateManager = NewTemplateManager("templates")
 
 	// setup basic Martini server
 
@@ -167,4 +172,42 @@ func loadConfigFile() error {
 	}
 
 	return nil
+}
+
+type dbConfig struct {
+	Key   string `db:"key"`
+	Value []byte `db:"value"`
+}
+
+func validateMasterPassword(db *sqlx.DB) {
+	c := dbConfig{}
+
+	db.Get(&c, "SELECT `key`, `value` FROM `config` WHERE `key` = 'teststring'")
+
+	if c.Key == "" {
+		panic("Could not read the teststring from the config table. Your database is broken.")
+	}
+
+	// not yet initialized, so store the ciphertext
+	if len(c.Value) == 0 {
+		ciphertext, err := Encrypt([]byte(TestString))
+		if err != nil {
+			panic(err)
+		}
+
+		_, err = db.Exec("UPDATE `config` SET `value` = ? WHERE `key` = ?", ciphertext, c.Key)
+		if err != nil {
+			panic("Could not write initial password marker: " + err.Error())
+		}
+	} else {
+		plaintext, err := Decrypt(c.Value)
+		if err != nil {
+			panic("The configured password is not usable for the configured database.")
+		}
+
+		// this should never happen: a wrong password should always yield an error in Decrypt()
+		if TestString != string(plaintext) {
+			panic("The configured password is not usable for the configured database.")
+		}
+	}
 }

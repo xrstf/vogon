@@ -33,7 +33,7 @@ type configuration struct {
 }
 
 func (c *configuration) Password() []byte {
-	if masterPassword != nil {
+	if masterPassword == nil {
 		file := c.Database.PasswordFile
 
 		password, err := ioutil.ReadFile(file)
