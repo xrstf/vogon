@@ -24,10 +24,11 @@ type layoutData struct {
 	ActiveMenuItem string
 	CurrentUser    *User
 	CsrfToken      string
+	BaseUrl        string
 }
 
 func NewLayoutData(title string, active string, user *User, csrfToken string) layoutData {
-	return layoutData{title, active, user, csrfToken}
+	return layoutData{title, active, user, csrfToken, config.Server.BaseUrl}
 }
 
 func NewTemplateManager(rootDir string) *TemplateManager {

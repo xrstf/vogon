@@ -17,6 +17,7 @@
 
 		<h3>Your assigned Secrets</h3>
 		{{$identifier := .Consumer.GetIdentifier}}
+		{{$base := .BaseUrl}}
 
 		{{if .Secrets}}
 			<p>The following secrets are available to you. Please note that there may be restrictions as to
@@ -34,7 +35,7 @@
 						{{range .Secrets}}
 						<tr>
 							<td><i class="fa fa-key"></i> {{.Name}}</td>
-							<td><a href="/get/{{$identifier}}/{{.Slug}}"><tt>https://this.example.co/get/{{$identifier}}/{{.Slug}}</tt></a></td>
+							<td><a href="/get/{{$identifier}}/{{.Slug}}"><tt>{{$base}}/get/{{$identifier}}/{{.Slug}}</tt></a></td>
 						</tr>
 						{{end}}
 					</tbody>

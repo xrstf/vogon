@@ -97,14 +97,18 @@ func main() {
 
 	// setup session and CSRF support
 
-	duration, _ := time.ParseDuration("30m")
+	duration, err := time.ParseDuration(config.Session.Lifetime)
+	if err != nil {
+		log.Fatal("Invalid session lifetime configured: " + err.Error())
+	}
 
 	sessions = NewSessionMiddleware(cookieOptions{
-		Name:     "sessieuyn",
+		Name:     config.Session.CookieName,
 		MaxAge:   duration,
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   config.Session.Secure,
 	})
+
 	sessions.Setup(m)
 
 	// re-compile all templates on each hit

@@ -565,6 +565,7 @@ func consumersUrlsAction(params martini.Params, user *User, req *http.Request, s
 }
 
 type infoPageStruct struct {
+	BaseUrl  string
 	Consumer *Consumer
 	Secrets  []Secret
 }
@@ -586,6 +587,7 @@ func consumerInfoAction(params martini.Params, db *sqlx.Tx) response {
 	}
 
 	data := infoPageStruct{
+		config.Server.BaseUrl,
 		consumer,
 		consumer.GetSecrets(false),
 	}

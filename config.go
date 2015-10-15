@@ -1,6 +1,12 @@
 package main
 
-import "crypto/tls"
+import (
+	"crypto/tls"
+	"io/ioutil"
+	"os"
+)
+
+var masterPassword []byte
 
 type configuration struct {
 	Database struct {
@@ -9,20 +15,47 @@ type configuration struct {
 		DeleteOnBoot bool   `json:"deleteOnBoot"`
 	} `json:"database"`
 
-	SessionKey  string `json:"sessionKey"`
-	CsrfKey     string `json:"csrfKey"`
 	Environment string `json:"environment"`
 
 	Server struct {
 		Listen      string   `json:"listen"`
+		BaseUrl     string   `json:"baseUrl"`
 		Certificate string   `json:"certificate"`
 		PrivateKey  string   `json:"privateKey"`
 		Ciphers     []string `json:"ciphers"`
 	} `json:"server"`
+
+	Session struct {
+		CookieName string `json:"cookieName"`
+		Lifetime   string `json:"lifetime"`
+		Secure     bool   `json:"secure"`
+	} `json:"session"`
 }
 
 func (c *configuration) Password() []byte {
-	return []byte("my very long password")
+	if masterPassword != nil {
+		file := c.Database.PasswordFile
+
+		password, err := ioutil.ReadFile(file)
+		if err != nil {
+			panic("Could not read password file: " + err.Error())
+		}
+
+		if len(password) == 0 {
+			panic("Password file '" + file + "' was empty.")
+		}
+
+		masterPassword = []byte(password)
+
+		if c.Database.DeleteOnBoot {
+			err := os.Remove(file)
+			if err != nil {
+				panic("Could not delete password file: " + err.Error())
+			}
+		}
+	}
+
+	return masterPassword
 }
 
 func (c *configuration) CipherSuites() []uint16 {

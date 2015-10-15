@@ -12,6 +12,7 @@
 	</div>
 </div>
 {{$identifier := .Consumer.GetIdentifier}}
+{{$base := .BaseUrl}}
 <div class="row">
 	<div class="col-lg-10 col-lg-offset-1">
 		<h3>{{.Consumer.Name}}</h3>
@@ -28,7 +29,7 @@
 					{{range .Secrets}}
 					<tr>
 						<td><i class="fa fa-key"></i> <a href="/secrets/{{.Id}}">{{.Name}}</a></td>
-						<td><a href="/get/{{$identifier}}/{{.Slug}}"><tt>https://this.example.co/get/{{$identifier}}/{{.Slug}}</tt></a></td>
+						<td><a href="/get/{{$identifier}}/{{.Slug}}"><tt>{{$base}}/get/{{$identifier}}/{{.Slug}}</tt></a></td>
 					</tr>
 					{{end}}
 				</tbody>
